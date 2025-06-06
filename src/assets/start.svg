@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>切片</title>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#87E8FD" offset="0%"></stop>
+            <stop stop-color="#12D4FF" offset="100%"></stop>
+        </linearGradient>
+        <path d="M27.4050647,4.61777693 C27.5316573,5.00440257 27.5316573,5.42109258 27.4050647,5.80603374 L20.3138276,25.3817123 C20.1122754,25.9963658 19.605905,26.4621255 18.9764939,26.6117516 C18.347266,26.7612312 17.6855569,26.5731183 17.2289519,26.1149388 L6.67774856,16.8737511 L18.5971555,8.30756533 L4.27461278,14.7655831 L3.04629456,13.6905895 C2.31790181,12.9542137 2.31790181,11.7688132 3.04629456,11.0324009 C3.2512889,10.8257221 3.50132488,10.6707862 3.7746873,10.5791283 L25.0468607,3.42948351 C25.5169049,3.27213075 26.0302696,3.30904292 26.4729959,3.53190744 C26.9157222,3.75462549 27.2513006,4.14483981 27.4050647,4.61605583 L27.4050647,4.61777693 Z M11.7058959,23.4201676 L6.22945616,24.5417408 L7.52442135,19.712033 L11.7058959,23.4201676 Z" id="path-2"></path>
+        <filter x="-6.0%" y="-10.7%" width="124.0%" height="117.1%" filterUnits="objectBoundingBox" id="filter-3">
+            <feOffset dx="3" dy="-1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feColorMatrix values="0 0 0 0 0.0822189991   0 0 0 0 0.187251632   0 0 0 0 0.33047795  0 0 0 1 0" type="matrix" in="shadowOffsetOuter1"></feColorMatrix>
+        </filter>
+        <filter x="-8.0%" y="-12.9%" width="128.0%" height="121.4%" filterUnits="objectBoundingBox" id="filter-4">
+            <feGaussianBlur stdDeviation="1.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.647058824   0 0 0 0 0.882352941   0 0 0 0 1  0 0 0 0.5 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="4160-1080px" transform="translate(-3984.000000, -203.000000)">
+            <g id="编组-43" transform="translate(3572.000000, 120.000000)">
+                <g id="icon_月均发布数" transform="translate(412.000000, 83.000000)">
+                    <polygon id="路径-6" fill="#153054" points="5.02442135 16.3786996 7.03358135 15.7789723 12.9715884 19.0566015 9.20589591 20.0868342"></polygon>
+                    <path d="M19.5867376,22.2125006 C18.8898836,22.6234512 18.3006448,22.8961141 17.8190212,23.0304893 C17.3373975,23.1648645 16.5929471,23.2643069 15.5856701,23.3288166 L16.3123763,21.2084075 L19.5867376,22.2125006 Z" id="路径-7" fill="#153054"></path>
+                    <g id="Fill-1">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-3)" xlink:href="#path-2"></use>
+                        <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-2"></use>
+                        <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-2"></use>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
