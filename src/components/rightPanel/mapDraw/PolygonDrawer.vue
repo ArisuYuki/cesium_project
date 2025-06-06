@@ -66,6 +66,10 @@
   let tempLine = undefined as Entity | undefined;
   let polygon = undefined as unknown as Entity;
   let positions = [] as Cartesian3[];
+
+  /**
+   * @description: 更新绘制的多边形
+   */
   function updatePolygon() {
     // 移除之前的临时线
     if (tempLine) {
@@ -120,6 +124,10 @@
     }
   }
   let handler = undefined as unknown as ScreenSpaceEventHandler;
+
+  /**
+   * @description: 开始绘制
+   */
   function startDraw() {
     if (!handler) {
       handler = new ScreenSpaceEventHandler(cesiumStore.viewer!.scene.canvas);
@@ -144,6 +152,9 @@
       endDraw();
     }, ScreenSpaceEventType.RIGHT_CLICK);
   }
+  /**
+   * @description: 结束绘制
+   */
   function endDraw() {
     entityStore.draw.polygon.push(polygon);
     tipStore.tip = `终止绘制，已绘制${entityStore.draw.polygon.length}个面`;

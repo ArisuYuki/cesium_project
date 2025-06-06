@@ -1,12 +1,12 @@
 /*
- * @Author: ArisuYuki a2648525976@gmail.com
+ * @Author: ShirahaYuki  shirhayuki2002@gmail.com
  * @Date: 2025-06-06 10:50:32
- * @LastEditors: ArisuYuki a2648525976@gmail.com
- * @LastEditTime: 2025-06-06 12:12:26
- * @FilePath: /cesium_project/src/components/leftPanel/aircraftInfo/aircraft.ts
- * @Description:
+ * @LastEditors: ArisuYuki shirhayuki2002@gmail.com
+ * @LastEditTime: 2025-06-06 12:22:11
+ * @FilePath: /cesium_project/src/utils/aircraft.ts
+ * @Description: 无人机相关代码
  *
- * Copyright (c) 2025 by ArisuYuki, All Rights Reserved.
+ * Copyright (c) 2025 by ShirahaYuki, All Rights Reserved.
  */
 
 /*

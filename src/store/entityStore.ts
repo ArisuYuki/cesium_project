@@ -1,4 +1,4 @@
-import Aircraft from '@/components/leftPanel/aircraftInfo/aircraft';
+import Aircraft from '@/utils/aircraft';
 import type { Entity } from 'cesium';
 import { defineStore } from 'pinia';
 

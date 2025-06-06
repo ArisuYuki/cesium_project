@@ -1,8 +1,17 @@
+/*
+ * @Author: ShirahaYuki  shirhayuki2002@gmail.com
+ * @Date: 2025-05-31 11:24:03
+ * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
+ * @LastEditTime: 2025-06-06 12:25:52
+ * @FilePath: /cesium_project/vite.config.mts
+ * @Description:
+ *
+ * Copyright (c) 2025 by ShirahaYuki, All Rights Reserved.
+ */
 // Plugins
 import Components from 'unplugin-vue-components/vite';
 import Vue from '@vitejs/plugin-vue';
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify';
-import ViteFonts from 'unplugin-fonts/vite';
 import cesium from 'vite-plugin-cesium';
 // Utilities
 import { defineConfig } from 'vite';
@@ -23,16 +32,6 @@ export default defineConfig({
     }),
     Components(),
     cesium(),
-    ViteFonts({
-      google: {
-        families: [
-          {
-            name: 'Roboto',
-            styles: 'wght@100;300;400;500;700;900',
-          },
-        ],
-      },
-    }),
   ],
   optimizeDeps: {
     exclude: [
