@@ -13,10 +13,10 @@
 <style lang="scss" scoped>
   .resource-list {
     width: 100%;
-    padding: 5px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
   }
   :deep(.v-expansion-panel-title) {
     background-image: url('@/assets/titBg.png');

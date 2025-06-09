@@ -19,13 +19,62 @@
     ScreenSpaceEventHandler,
     defined,
   } from 'cesium';
+  import { type AircraftInfo, Aircraft } from '@/utils/aircraft';
   const cesiumStore = useCesiumStore();
   const entityStore = useEntityStore();
   const tipStore = useTipStore();
   const router = useRouter();
   const route = useRoute();
   let handler = undefined as ScreenSpaceEventHandler | undefined;
-  onMounted(() => {
+
+  /**
+   * @description: 初始化所有的飞机
+   */
+  function initAircraft() {
+    const aircraftList: AircraftInfo[] = [
+      {
+        id: '1',
+        name: '测试机1',
+        type: '',
+        status: {
+          location: [111.62712662878896, 30.43792756540471, 35.497846690354905],
+          power: 85,
+          speed: 0,
+        },
+        airline: [],
+      },
+      {
+        id: '2',
+        name: '测试机2',
+        type: '',
+        status: {
+          location: [111.62812662878896, 30.43792756540471, 35.497846690354905],
+          power: 70,
+          speed: 1,
+        },
+        airline: [],
+      },
+      {
+        id: '3',
+        name: '测试机',
+        type: '',
+        status: {
+          location: [111.6292662878896, 30.43792756540471, 35.497846690354905],
+          power: 20,
+          speed: 60,
+        },
+        airline: [],
+      },
+    ];
+    //加载飞机模型
+    tipStore.tip = '正在加载飞机模型...';
+    // 加载飞机模型
+    for (const aircraftInfo of aircraftList) {
+      entityStore.aircraft.push(new Aircraft(aircraftInfo));
+    }
+    tipStore.tip = '飞机模型加载完毕';
+  }
+  onMounted(async () => {
     cesiumStore.setViewer('cesiumContainer');
     cesiumStore.setMapType('img');
 
@@ -84,7 +133,10 @@
     viewer.selectedEntityChanged.addEventListener(function (entity) {
       if (entity) {
         entityStore.currentEntity = entity;
-        console.log('JSON.parse(entity.description) :>> ', JSON.parse(entity.description));
+        console.log(
+          'JSON.parse(entity.description) :>> ',
+          JSON.parse(entity.description)
+        );
         switch (JSON.parse(entity.description).type) {
           case 'draw-point':
             router.push({ name: 'point' });
@@ -101,7 +153,7 @@
         }
       }
     });
-
+    initAircraft();
     handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
     // 监听双击事件
     // @ts-expect-error: 未使用参数
@@ -115,6 +167,7 @@
       }
     }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
   });
+
   const cesiumStyle = ref(false);
   if (route.path.split('/')[1] == 'cruise') {
     cesiumStyle.value = true;

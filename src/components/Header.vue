@@ -1,7 +1,7 @@
 <template>
   <div class="nav">
     <div class="my-header">
-      <div class="title">智慧公路巡检系统</div>
+      <div class="title">无人机公路巡检系统</div>
     </div>
     <!-- <div class="panel-bar">
       <div class="panel-title">无人机规划</div>

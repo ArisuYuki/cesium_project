@@ -6,6 +6,7 @@ import {
   type ImageryLayer,
   Terrain,
   Color,
+  JulianDate,
 } from 'cesium';
 type TMapType =
   | 'vec'
@@ -39,7 +40,7 @@ export const useCesiumStore = defineStore('cesium', {
     },
   }),
   actions: {
-    async setViewer(container_id: string) {
+    setViewer(container_id: string) {
       Ion.defaultAccessToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2YjA3Njk3My00YTNhLTRjNTktOGY3Ni1lMmNjMWE0MDE4MTgiLCJpZCI6Mjk2NzMyLCJpYXQiOjE3NDgzNDUzODZ9.FvsX3IAYGuf2YkNJtF0YcSm6wvJgdWn-h5cJnB7dHgQ';
       const token = import.meta.env.VITE_MAP_WORLD_KEY;
@@ -69,12 +70,10 @@ export const useCesiumStore = defineStore('cesium', {
         navigationHelpButton: false, // 隐藏导航帮助按钮
       });
       this.viewer = viewer;
-      // viewer.scene.skyBox.show = false; // 隐藏天空盒（星空背景）
-      // viewer.scene.sun.show = false; // 隐藏太阳
-      // viewer.scene.moon.show = false; // 隐藏月亮
-      // viewer.scene.skyAtmosphere.show = false; // 隐藏大气层效果
+      viewer.clock.startTime = JulianDate.now();
+      viewer.clock.shouldAnimate = true;
+      viewer.clock.multiplier = 1.0;
       viewer.scene.backgroundColor = new Color(0.0, 0.0, 0.0, 0.0);
-      // viewer.scene.backgroundColor = Color.TRANSPARENT; // 设置背景颜色为黑色
       const vecURL =
         'http://t{s}.tianditu.gov.cn/vec_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=vec&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=' +
         token;

@@ -1,8 +1,8 @@
 /*
  * @Author: ShirahaYuki  shirhayuki2002@gmail.com
  * @Date: 2025-06-06 10:50:32
- * @LastEditors: ArisuYuki shirhayuki2002@gmail.com
- * @LastEditTime: 2025-06-06 12:22:11
+ * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
+ * @LastEditTime: 2025-06-09 10:41:10
  * @FilePath: /cesium_project/src/utils/aircraft.ts
  * @Description: 无人机相关代码
  *
@@ -32,36 +32,222 @@
  *                神兽保佑            永无BUG
  */
 
-import { type Viewer } from 'cesium';
+import {
+  type Entity,
+  type Viewer,
+  Quaternion,
+  Cartesian3,
+  JulianDate,
+  CallbackPositionProperty,
+  VelocityOrientationProperty,
+  PerspectiveFrustum,
+  GeometryInstance,
+  FrustumGeometry,
+  VertexFormat,
+  ColorGeometryInstanceAttribute,
+  FrustumOutlineGeometry,
+  PerInstanceColorAppearance,
+  Primitive,
+  Color,
+  Math,
+  LabelStyle,
+  VerticalOrigin,
+  HorizontalOrigin,
+  Cartesian2,
+  // IonResource,
+} from 'cesium';
 import { useCesiumStore } from '@/store/cesiumStore';
+// @ts-expect-error: 模型资源文件
+import aircraftModel from '@/assets/aircraft-model.glb';
+/**
+ * @description webStock传输的无人机状态信息
+ **/
+interface AircraftStatus {
+  location: [number, number, number];
+  power: number;
+  speed: number;
+}
 /**
  * @description 无人机初始化状态接口
  **/
 interface AircraftInfo {
-  id: number;
+  id: string;
   name: string;
   type: string;
-  status: string;
-  location: string;
+  status: AircraftStatus;
   airline: number[][];
 }
-//无人机实体
-class Aircraft {
-  public initInfo: AircraftInfo;
-  public cesiumStore: ReturnType<typeof useCesiumStore>;
+
+const cesiumStore = useCesiumStore();
+
+/**
+ * @description: 无人机类，继承EventTarget添加事件的能力
+ */
+class Aircraft extends EventTarget {
+  public statusInfo: AircraftInfo;
   public viewer: Viewer;
+  public airplaneEntity: Entity | undefined;
+  public airLine: CallbackPositionProperty | undefined;
+  public lastUpdateTime: JulianDate;
+  public nowUpdateTime: JulianDate;
+  public nowLocation: Cartesian3;
+  public lastLocation: Cartesian3;
+  public socket: WebSocket;
+  public frustumPrimitive: Primitive | undefined;
+  public frustumOutlinePrimitive: Primitive | undefined;
+  public orientation: Quaternion;
   constructor(initInfo: AircraftInfo) {
-    this.initInfo = initInfo;
+    super();
+    this.statusInfo = initInfo;
     //初始化全局cesium
-    this.cesiumStore = useCesiumStore() as ReturnType<typeof useCesiumStore>;
-    this.viewer = this.cesiumStore.viewer!;
+    this.viewer = cesiumStore.viewer!;
+    this.socket = new WebSocket('/aircraft/info?id=' + this.statusInfo.id);
+    this.airplaneEntity = undefined;
+    this.airLine = undefined;
+    this.lastUpdateTime = JulianDate.now();
+    this.nowUpdateTime = JulianDate.now();
+    this.orientation = new Quaternion(0, 0, 0, 1);
+    this.nowLocation = Cartesian3.fromDegrees(
+      this.statusInfo.status.location[0],
+      this.statusInfo.status.location[1],
+      this.statusInfo.status.location[2]
+    );
+    this.lastLocation = Cartesian3.fromDegrees(
+      this.statusInfo.status.location[0],
+      this.statusInfo.status.location[1],
+      this.statusInfo.status.location[2]
+    );
+    this.init();
   }
 
+  async init() {
+    if (!cesiumStore.viewer) {
+      alert('请先初始化viewer');
+      return;
+    }
+    // const aircraft = await IonResource.fromAssetId(3442886);
+
+    this.airLine = new CallbackPositionProperty(
+      (time?: JulianDate, result?: Cartesian3) => {
+        // return this.nowLocation; // 返回最新位置
+        if (Cartesian3.equals(this.nowLocation, this.lastLocation)) {
+          return Cartesian3.clone(this.lastLocation, result);
+        }
+
+        const totalSeconds = JulianDate.secondsDifference(
+          this.nowUpdateTime,
+          this.lastUpdateTime
+        );
+        const elapsedSeconds = JulianDate.secondsDifference(
+          time!,
+          this.lastUpdateTime
+        );
+        const fraction = elapsedSeconds / totalSeconds;
+        const pos = Cartesian3.lerp(
+          this.lastLocation,
+          this.nowLocation,
+          fraction,
+          new Cartesian3()
+        );
+        //更新可视锥
+        this.addFrustum(
+          pos,
+          this.orientation!,
+          40,
+          1,
+          this.statusInfo.status.location[2]
+        );
+        // 使用Cesium的线性插值方法
+        return pos;
+      },
+      false // 不缓存，每次都重新计算
+    );
+    // const resource = await IonResource.fromAssetId(3442328);
+    // 使用 CallbackProperty 动态更新位置
+    this.airplaneEntity = cesiumStore.viewer!.entities.add({
+      position: this.airLine,
+      model: {
+        uri: aircraftModel,
+        // uri: resource,
+        scale: 1,
+      },
+      orientation: new VelocityOrientationProperty(this.airLine), // 自动计算朝向
+      path: { width: 3 }, // 显示飞行路径
+      viewFrom: new Cartesian3(-100, 0, 10),
+      description: JSON.stringify({
+        type: 'aircraft',
+        description: '',
+      }),
+      label: {
+        text: this.statusInfo.name, // 显示的文字内容
+        font: '12pt sans-serif', // 字体设置
+        fillColor: Color.WHITE, // 文字颜色
+        outlineColor: Color.BLACK, // 文字描边颜色
+        outlineWidth: 2, // 描边宽度
+        style: LabelStyle.FILL_AND_OUTLINE, // 样式
+        verticalOrigin: VerticalOrigin.BOTTOM, // 垂直对齐
+        horizontalOrigin: HorizontalOrigin.CENTER, // 水平对齐
+        pixelOffset: new Cartesian2(0, -20), // 偏移量(像素)
+      },
+    });
+    //添加更新事件，更新无人机状态
+    this.addEventListener('update', (event) => {
+      this.updateState((event as CustomEvent).detail);
+    });
+
+    //接收到更新信息时候分发更新事件
+    this.socket.addEventListener('message', (event: MessageEvent) => {
+      const newState = JSON.parse(event.data) as AircraftStatus;
+      this.dispatchEvent(new CustomEvent('update', { detail: newState }));
+    });
+    //获取可视锥的位置
+    setInterval(() => {
+      const originalQuaternion = this.airplaneEntity?.orientation?.getValue();
+      if (originalQuaternion) {
+        const flipQuaternion = Quaternion.fromAxisAngle(
+          Cartesian3.UNIT_X, // 绕 X 轴
+          Math.PI // 旋转 180 度
+        );
+        const newQuaternion = Quaternion.multiply(
+          originalQuaternion,
+          flipQuaternion,
+          new Quaternion()
+        );
+        this.orientation = newQuaternion;
+      }
+    }, 100);
+
+    // setInterval(() => {
+    //   this.statusInfo.status.location[1] += 0.00001;
+    //   this.statusInfo.status.power -= 1;
+    //   this.updateState({
+    //     location: this.statusInfo.status.location,
+    //     power: this.statusInfo.status.power,
+    //     speed: 0,
+    //   });
+    // }, 1000);
+  }
+  /**
+   * @description: 更新无人机状态
+   * @param {AircraftStatus} newState：服务器传递过来的新状态
+   * @return {*}
+   */
+  updateState(newState: AircraftStatus): void {
+    this.statusInfo.status = newState;
+    this.lastUpdateTime = this.nowUpdateTime;
+    this.nowUpdateTime = JulianDate.now();
+    this.lastLocation = this.nowLocation;
+    this.nowLocation = Cartesian3.fromDegrees(
+      newState.location[0],
+      newState.location[1],
+      newState.location[2]
+    );
+  }
   /**
    * @description: 为无人机指定航线
    * @return {*}
    */
-  indicateAirline() {
+  indicateAirline(): void {
     //待做
   }
 
@@ -69,7 +255,7 @@ class Aircraft {
    * @description: 无人机停止飞行/开始飞行
    * @return {*}
    */
-  takeOff() {
+  takeOff(): void {
     //待做
   }
 
@@ -77,9 +263,89 @@ class Aircraft {
    * @description: 控制无人机姿态
    * @return {*}
    */
-  control() {
+  control(): void {
     //待做
+  }
+
+  /**
+   * @description: 添加视锥体
+   * @param {*} position: 飞机位置
+   * @param {*} orientation：飞机姿态
+   * @param {*} fov: 飞机视场角
+   * @param {*} near: 近截面的距离
+   * @param {*} far: 远截面的距离
+   * @param {*} aspectRatio: 平面的宽高比
+   * @return {*}
+   */
+  addFrustum(
+    position: Cartesian3,
+    orientation: Quaternion,
+    fov = 30,
+    near = 1,
+    far = 500,
+    aspectRatio = 1
+  ): void {
+    if (this.frustumPrimitive || this.frustumOutlinePrimitive) {
+      cesiumStore.viewer!.scene.primitives.remove(this.frustumPrimitive);
+      cesiumStore.viewer!.scene.primitives.remove(this.frustumOutlinePrimitive);
+      this.frustumPrimitive = undefined;
+      this.frustumOutlinePrimitive = undefined;
+    }
+    //创建时锥体
+    const frustum = new PerspectiveFrustum({
+      fov: Math.toRadians(fov),
+      aspectRatio: aspectRatio,
+      near: near,
+      far: far,
+    });
+    const instanceGeo = new GeometryInstance({
+      geometry: new FrustumGeometry({
+        frustum: frustum,
+        origin: position,
+        orientation: orientation,
+        vertexFormat: VertexFormat.POSITION_ONLY,
+      }),
+      attributes: {
+        color: ColorGeometryInstanceAttribute.fromColor(
+          new Color(0.0, 0.0, 1.0, 0.3)
+        ),
+      },
+    });
+    //创建边框线
+    const instanceGeoLine = new GeometryInstance({
+      geometry: new FrustumOutlineGeometry({
+        frustum: frustum,
+        origin: position,
+        orientation: orientation,
+      }),
+      attributes: {
+        color: ColorGeometryInstanceAttribute.fromColor(
+          new Color(1.0, 1.0, 1.0, 1)
+        ),
+      },
+    });
+    //创建实体
+    const primitive = new Primitive({
+      geometryInstances: [instanceGeo],
+      appearance: new PerInstanceColorAppearance({
+        closed: true,
+        flat: true,
+      }),
+      asynchronous: false,
+    });
+
+    const primitive1 = new Primitive({
+      geometryInstances: [instanceGeoLine],
+      appearance: new PerInstanceColorAppearance({
+        closed: true,
+        flat: true,
+      }),
+      asynchronous: false,
+    });
+    this.frustumPrimitive = cesiumStore.viewer!.scene.primitives.add(primitive);
+    this.frustumOutlinePrimitive =
+      cesiumStore.viewer!.scene.primitives.add(primitive1);
   }
 }
 
-export default Aircraft;
+export { type AircraftInfo, Aircraft };

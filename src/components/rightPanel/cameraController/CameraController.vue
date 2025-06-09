@@ -104,6 +104,6 @@
 
 <style scoped lang="scss">
   .camera-controller {
-    padding: 0px 10px;
+    padding: 0px 8px;
   }
 </style>

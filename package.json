@@ -15,6 +15,7 @@
     "@mdi/font": "7.4.47",
     "cesium": "^1.129.0",
     "cesium-navigation-es6": "^3.0.9",
+    "echarts": "^5.6.0",
     "pinia": "^3.0.2",
     "roboto-fontface": "*",
     "vite-plugin-cesium": "^1.2.23",

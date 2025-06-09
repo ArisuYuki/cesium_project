@@ -52,28 +52,13 @@
 
 <style scoped lang="scss">
   .draw-map {
-    padding: 12px;
+    padding: 8px;
   }
   .draw-map-content {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
-  .action-btns {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .card-btn {
-    padding: 0;
-  }
-  .color-point {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: antiquewhite;
-  }
-
   .tab-window {
     padding: 10px 0px;
   }

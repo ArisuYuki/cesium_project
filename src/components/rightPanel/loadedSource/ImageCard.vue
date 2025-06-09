@@ -1,6 +1,6 @@
 <template>
   <div class="image-card">
-    <v-expansion-panels variant="accordion" class="image-card-panel">
+    <v-expansion-panels variant="accordion">
       <v-expansion-panel>
         <v-expansion-panel-title>
           <v-icon icon="mdi-image"> </v-icon>

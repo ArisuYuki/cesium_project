@@ -20,13 +20,6 @@
 </script>
 
 <style lang="scss" scoped>
-  :deep(#cesium-container) {
-    z-index: 1;
-    position: absolute;
-    width: 100%;
-    height: calc(100vh - 36px);
-    transition: all 0.4s;
-  }
   .cruise-page {
     width: 100vw;
     height: 100%;
