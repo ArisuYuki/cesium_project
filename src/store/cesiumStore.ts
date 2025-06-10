@@ -1,3 +1,13 @@
+/*
+ * @Author: ShirahaYuki  shirhayuki2002@gmail.com
+ * @Date: 2025-05-31 11:24:03
+ * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
+ * @LastEditTime: 2025-06-10 13:45:50
+ * @FilePath: /cesium_project/src/store/cesiumStore.ts
+ * @Description:全局Cesium仓库，存储Cesium相关的全局变量
+ *
+ * Copyright (c) 2025 by ShirahaYuki, All Rights Reserved.
+ */
 import { defineStore } from 'pinia';
 import {
   Viewer,

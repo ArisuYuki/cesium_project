@@ -82,25 +82,17 @@
   const posMode = ref('degree');
   const label = ref(['经度', '纬度', '高度']);
 
-  //定时器ID
-  let IntervalID: number = 0;
-
-  /**
-   * @description: 初始化各种状态
-   */
-  function init() {
-    //每秒定时查询新位置并更新
-    IntervalID = setInterval(() => {
-      updateLocation();
-    }, 1000);
-    tipStore.tip = '初始化无人机信息完成';
-  }
-  init();
+  //状态更新定时器ID
+  const IntervalID = setInterval(() => {
+    updateStatus();
+  }, 1000);
   //卸载组件时移除定时器
   onUnmounted(() => {
-    if (IntervalID) clearInterval(IntervalID);
+    clearInterval(IntervalID);
   });
-  function updateLocation() {
+  //更新无人机状态
+  function updateStatus() {
+    //查询更新无人机位置
     const currentX = entityStore.currentEntity?.position!.getValue()!
       .x as number;
     const currentY = entityStore.currentEntity?.position!.getValue()!

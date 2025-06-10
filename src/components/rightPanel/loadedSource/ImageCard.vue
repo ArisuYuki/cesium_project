@@ -122,7 +122,7 @@
     Cartographic,
   } from 'cesium';
   import { useCesiumStore } from '@/store/cesiumStore';
-  import img from '@/assets/testImg.jpg';
+  import img from '@/assets/testImg.jpeg';
   const tipStore = useTipStore();
   const cesiumStore = useCesiumStore();
   interface ImageType {

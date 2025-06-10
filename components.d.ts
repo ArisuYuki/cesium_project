@@ -12,6 +12,7 @@ declare module 'vue' {
     AircraftInfo: typeof import('./src/components/leftPanel/aircraftInfo/AircraftInfo.vue')['default']
     AircraftList: typeof import('./src/components/leftPanel/aircraftList/AircraftList.vue')['default']
     AircraftPanel: typeof import('./src/components/AircraftPanel/AircraftPanel.vue')['default']
+    AirlineDesign: typeof import('./src/components/leftPanel/airlineDesign/AirlineDesign.vue')['default']
     CameraController: typeof import('./src/components/rightPanel/cameraController/CameraController.vue')['default']
     CesiumViewer: typeof import('./src/components/publicComponents/CesiumViewer.vue')['default']
     ColorDialogs: typeof import('./src/components/publicComponents/ColorDialogs.vue')['default']

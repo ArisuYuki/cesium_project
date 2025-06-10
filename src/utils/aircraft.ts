@@ -1,4 +1,28 @@
 /*
+ *                                                     __----~~~~~~~~~~~------___
+ *                                    .  .   ~~//====......          __--~ ~~
+ *                    -.            \_|//     |||\\  ~~~~~~::::... /~
+ *                 ___-==_       _-~o~  \/    |||  \\            _/~~-
+ *         __---~~~.==~||\=_    -_--~/_-~|-   |\\   \\        _/~
+ *     _-~~     .=~    |  \\-_    '-~7  /-   /  ||    \      /
+ *   .~       .~       |   \\ -_    /  /-   /   ||      \   /
+ *  /  ____  /         |     \\ ~-_/  /|- _/   .||       \ /
+ *  |~~    ~~|--~~~~--_ \     ~==-/   | \~--===~~        .\
+ *           '         ~-|      /|    |-~\~~       __--~~
+ *                       |-~~-_/ |    |   ~\_   _-~            /\
+ *                            /  \     \__   \/~                \__
+ *                        _--~ _/ | .-~~____--~-/                  ~~==.
+ *                       ((->/~   '.|||' -_|    ~~-/ ,              . _||
+ *                                  -_     ~\      ~~---l__i__i__i--~~_/
+ *                                  _-~-__   ~)  \--______________--~~
+ *                                //.-~~~-~_--~- |-------~~~~~~~~
+ *                                       //.-~~~--\
+ *                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *                               神兽保佑            永无BUG
+ */
+
+/*
  * @Author: ShirahaYuki  shirhayuki2002@gmail.com
  * @Date: 2025-06-06 10:50:32
  * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
@@ -36,24 +60,7 @@ import {
 import { useCesiumStore } from '@/store/cesiumStore';
 // @ts-expect-error: 模型资源文件
 import aircraftModel from '@/assets/aircraft-model.glb';
-/**
- * @description webStock传输的无人机状态信息
- **/
-interface AircraftStatus {
-  location: [number, number, number];
-  power: number;
-  speed: number;
-}
-/**
- * @description 无人机初始化状态接口
- **/
-interface AircraftInfo {
-  id: string;
-  name: string;
-  type: string;
-  status: AircraftStatus;
-  airline: number[][];
-}
+import { type AircraftInfo, type AircraftStatus } from './interface';
 
 const cesiumStore = useCesiumStore();
 

@@ -89,7 +89,7 @@
     prop.aircraft?.removeEventListener('update', updateStatus);
   });
   function zoomTo() {
-    cesiumStore.viewer!.flyTo(prop.aircraft!.airplaneEntity!);
+    cesiumStore.viewer!.flyTo(prop.aircraft!.aircraftEntity!);
   }
 </script>
 

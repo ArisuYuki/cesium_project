@@ -11,25 +11,20 @@
       hide-details
     ></v-number-input>
     <div class="color-picker">
-      <v-spacer></v-spacer>
       <div>颜色</div>
-      <v-spacer></v-spacer>
       <div
         class="color"
         :style="{ backgroundColor: color }"
         @click="dialog = true"
       ></div>
-      <v-spacer></v-spacer>
     </div>
-    <div class="action-btns">
-      <v-spacer></v-spacer>
+    <div class="flex-center">
       <v-switch
         label="自动闭合"
         v-model="autoConnect"
         hide-details
         color="primary"
       ></v-switch>
-      <v-spacer></v-spacer>
     </div>
 
     <div class="action-btns">
@@ -105,7 +100,7 @@
       });
     }
   }
-  let handler = undefined as unknown as ScreenSpaceEventHandler;
+  let handler = undefined as undefined | ScreenSpaceEventHandler;
   function startDraw() {
     if (!handler) {
       handler = new ScreenSpaceEventHandler(cesiumStore.viewer!.scene.canvas);
@@ -147,7 +142,8 @@
     }
     entityStore.line.push(polylineEntity);
     tipStore.tip = `终止绘制，已绘制${entityStore.line.length}条线`;
-    handler.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
+    handler!.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
+    handler = undefined;
   }
 </script>
 
@@ -167,7 +163,7 @@
   .color-picker {
     font-size: 12px;
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
   }
   .color {

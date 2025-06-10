@@ -10,6 +10,7 @@
       :precision="1"
       hide-details
     ></v-number-input>
+    
     <div class="color-picker">
       <v-spacer></v-spacer>
       <div>颜色</div>
@@ -91,7 +92,7 @@
     return point;
   }
 
-  let handler = undefined as unknown as ScreenSpaceEventHandler;
+  let handler = undefined as undefined | ScreenSpaceEventHandler;
   function startDraw() {
     if (!handler) {
       handler = new ScreenSpaceEventHandler(cesiumStore.viewer!.scene.canvas);
@@ -119,7 +120,8 @@
   }
   function endDraw() {
     tipStore.tip = `终止绘制，已绘制${entityStore.point.length}个点`;
-    handler.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
+    handler!.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
+    handler = undefined;
   }
 </script>
 
@@ -127,7 +129,7 @@
   .point-drawer {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .action-btns {
     display: flex;

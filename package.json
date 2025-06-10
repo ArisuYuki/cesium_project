@@ -18,6 +18,7 @@
     "echarts": "^5.6.0",
     "pinia": "^3.0.2",
     "roboto-fontface": "*",
+    "uuid": "^11.1.0",
     "vite-plugin-cesium": "^1.2.23",
     "vue": "^3.5.13",
     "vuetify": "^3.8.1"

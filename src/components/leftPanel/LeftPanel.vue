@@ -60,7 +60,9 @@
           <v-tabs-window-item value="aircraft-info">
             <AircraftInfo></AircraftInfo>
           </v-tabs-window-item>
-          <v-tabs-window-item value="airline-design"> </v-tabs-window-item>
+          <v-tabs-window-item value="airline-design">
+            <AirlineDesign></AirlineDesign>
+          </v-tabs-window-item>
           <v-tabs-window-item value="airline-cruise"> </v-tabs-window-item>
           <v-tabs-window-item value="asset-manage"> </v-tabs-window-item>
           <v-tabs-window-item value="info-export"> </v-tabs-window-item>
@@ -71,9 +73,9 @@
 </template>
 
 <script lang="ts" setup>
-
   import { ref } from 'vue';
   import AircraftInfo from './aircraftInfo/AircraftInfo.vue';
+  import AirlineDesign from './airlineDesign/AirlineDesign.vue';
   const tabs = ref('airline-info');
 </script>
 

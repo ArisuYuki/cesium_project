@@ -35,7 +35,6 @@
       {
         id: '1',
         name: '测试机1',
-        type: '',
         status: {
           location: [111.62712662878896, 30.43792756540471, 35.497846690354905],
           power: 85,
@@ -46,7 +45,6 @@
       {
         id: '2',
         name: '测试机2',
-        type: '',
         status: {
           location: [111.62812662878896, 30.43792756540471, 35.497846690354905],
           power: 70,
@@ -56,8 +54,7 @@
       },
       {
         id: '3',
-        name: '测试机',
-        type: '',
+        name: '测试机3',
         status: {
           location: [111.6292662878896, 30.43792756540471, 35.497846690354905],
           power: 20,
@@ -129,7 +126,7 @@
       cesiumStore.camera.heading = Math.toDegrees(heading);
       cesiumStore.camera.roll = Math.toDegrees(roll);
     });
-    //监听是否选中了实体
+    //监听是否选中了实体并跳转到信息页面
     viewer.selectedEntityChanged.addEventListener(function (entity) {
       if (entity) {
         entityStore.currentEntity = entity;
@@ -147,15 +144,15 @@
     // @ts-expect-error: 未使用参数
     handler.setInputAction(function (movement) {
       const pickedObject = viewer.scene.pick(movement.position);
-      // 如果双击时没有选中任何实体（即取消选中）
+      // 如果双击时没有选中任何实体，跳转回到设计页面
       if (!defined(pickedObject)) {
-        tipStore.tip = '取消选中';
+        tipStore.tip = '取消选中实体';
         router.push({ name: 'design' });
-        // 在这里添加你的取消选中处理逻辑
       }
     }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
   });
 
+  //切换到巡航页面时缩小cesium视图
   const cesiumStyle = ref(false);
   if (route.path.split('/')[1] == 'cruise') {
     cesiumStyle.value = true;

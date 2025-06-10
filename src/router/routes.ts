@@ -41,6 +41,12 @@ const routes: RouteRecordRaw[] = [
                 component: () =>
                   import('@/views/designMode/entity/AircraftEntity.vue'),
               },
+              {
+                path: 'airline?id=:id',
+                name: 'airline',
+                component: () =>
+                  import('@/views/designMode/entity/AirlineEntity.vue'),
+              },
             ],
           },
           {

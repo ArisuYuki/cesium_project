@@ -346,7 +346,7 @@
       pointEntity.label = {
         text: pointLabel.value, // 显示的文字内容
         // @ts-expect-error: Unreachable code error
-        font: '14pt sans-serif', // 字体设置
+        font: '12pt sans-serif', // 字体设置
         // @ts-expect-error: Unreachable code error
         fillColor: Color.WHITE, // 文字颜色
         // @ts-expect-error: Unreachable code error

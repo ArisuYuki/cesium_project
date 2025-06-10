@@ -61,12 +61,13 @@
   const entityStore = useEntityStore();
   const chartsContainer = useTemplateRef('over-chest');
   let myChart: echarts.EChartsType | undefined = undefined;
-  function initChart() {
 
+  function initChart() {
     myChart = echarts.init(chartsContainer.value);
     const option = {
       tooltip: {
         trigger: 'item',
+        position: 'top',
       },
       visualMap: {
         show: false,
@@ -118,6 +119,7 @@
     };
     myChart.setOption(option);
   }
+  //初始化图表
   const id = setInterval(() => {
     if (chartsContainer.value?.clientHeight != 0) {
       initChart();
@@ -146,7 +148,7 @@
   .aircraft-overview {
     display: flex;
     flex-direction: column;
-    padding: 8px 16px;
+    padding: 8px;
     gap: 8px;
   }
   .aircraft-overview-item {
