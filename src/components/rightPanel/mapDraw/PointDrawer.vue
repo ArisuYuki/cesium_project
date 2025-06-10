@@ -80,11 +80,14 @@
         outlineWidth: 0.1,
       },
       description: JSON.stringify({
-        type: 'draw-point',
+        type: 'point',
         description: '',
       }),
+      label: {
+        text: '', // 显示的文字内容
+      },
     });
-    entityStore.draw.point.push(point);
+    entityStore.point.push(point);
     return point;
   }
 
@@ -115,7 +118,7 @@
     }, ScreenSpaceEventType.RIGHT_CLICK);
   }
   function endDraw() {
-    tipStore.tip = `终止绘制，已绘制${entityStore.draw.point.length}个点`;
+    tipStore.tip = `终止绘制，已绘制${entityStore.point.length}个点`;
     handler.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
   }
 </script>

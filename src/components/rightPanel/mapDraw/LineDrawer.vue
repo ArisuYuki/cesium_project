@@ -99,7 +99,7 @@
           material: Color.fromCssColorString(color.value),
         },
         description: JSON.stringify({
-          type: 'draw-line',
+          type: 'line',
           description: '',
         }),
       });
@@ -140,13 +140,13 @@
           material: Color.fromCssColorString(color.value),
         },
         description: JSON.stringify({
-          type: 'draw-line',
+          type: 'line',
           description: '',
         }),
       });
     }
-    entityStore.draw.line.push(polylineEntity);
-    tipStore.tip = `终止绘制，已绘制${entityStore.draw.line.length}条线`;
+    entityStore.line.push(polylineEntity);
+    tipStore.tip = `终止绘制，已绘制${entityStore.line.length}条线`;
     handler.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
   }
 </script>

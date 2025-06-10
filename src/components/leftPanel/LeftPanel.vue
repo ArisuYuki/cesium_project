@@ -71,6 +71,7 @@
 </template>
 
 <script lang="ts" setup>
+
   import { ref } from 'vue';
   import AircraftInfo from './aircraftInfo/AircraftInfo.vue';
   const tabs = ref('airline-info');

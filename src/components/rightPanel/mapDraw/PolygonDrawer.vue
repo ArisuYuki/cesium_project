@@ -117,7 +117,7 @@
           }),
         },
         description: JSON.stringify({
-          type: 'draw-polygon',
+          type: 'polygon',
           description: '',
         }),
       });
@@ -156,8 +156,8 @@
    * @description: 结束绘制
    */
   function endDraw() {
-    entityStore.draw.polygon.push(polygon);
-    tipStore.tip = `终止绘制，已绘制${entityStore.draw.polygon.length}个面`;
+    entityStore.polygon.push(polygon);
+    tipStore.tip = `终止绘制，已绘制${entityStore.polygon.length}个面`;
     handler.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
   }
 </script>

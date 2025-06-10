@@ -18,25 +18,25 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/designMode/entity/Entity.vue'),
             children: [
               {
-                path: 'point',
+                path: 'point?id=:id',
                 name: 'point',
                 component: () =>
                   import('@/views/designMode/entity/PointEntity.vue'),
               },
               {
-                path: 'line',
+                path: 'line?id=:id',
                 name: 'line',
                 component: () =>
                   import('@/views/designMode/entity/LineEntity.vue'),
               },
               {
-                path: 'polygon',
+                path: 'polygon?id=:id',
                 name: 'polygon',
                 component: () =>
                   import('@/views/designMode/entity/PolygonEntity.vue'),
               },
               {
-                path: 'aircraft',
+                path: 'aircraft?id=:id',
                 name: 'aircraft',
                 component: () =>
                   import('@/views/designMode/entity/AircraftEntity.vue'),

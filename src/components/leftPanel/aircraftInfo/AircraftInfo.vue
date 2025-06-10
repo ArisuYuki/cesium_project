@@ -62,7 +62,7 @@
   const chartsContainer = useTemplateRef('over-chest');
   let myChart: echarts.EChartsType | undefined = undefined;
   function initChart() {
-    console.log('test');
+
     myChart = echarts.init(chartsContainer.value);
     const option = {
       tooltip: {

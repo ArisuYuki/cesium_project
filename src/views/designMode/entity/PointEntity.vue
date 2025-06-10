@@ -117,7 +117,7 @@
             <v-icon
               icon="mdi-reload"
               class="delete-icon"
-              @click="setRecord"
+              @click="init"
             ></v-icon>
           </div>
         </div>
@@ -146,7 +146,7 @@
         </div>
       </div>
       <v-text-field
-        v-model="desc"
+        v-model="description"
         label="描述"
         prepend-icon="mdi-comment"
         class="point-desc"
@@ -164,14 +164,13 @@
 
 <script setup lang="ts">
   import { ref, watch } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { useRouter, useRoute } from 'vue-router';
   import { useEntityStore } from '@/store/entityStore';
   import { useCesiumStore } from '@/store/cesiumStore';
   import { useTipStore } from '@/store/tipStore';
   import {
     Cartesian3,
     Cartographic,
-    type PointGraphics,
     Math,
     Color,
     VerticalOrigin,
@@ -181,19 +180,34 @@
   } from 'cesium';
 
   const router = useRouter();
+  const route = useRoute();
   const entityStore = useEntityStore();
   const cesiumStore = useCesiumStore();
   const tipStore = useTipStore();
-  const x = ref(0);
-  const y = ref(0);
-  const z = ref(0);
-  const pixelSize = ref(0);
-  const outlineWidth = ref(0);
-  const color = ref('');
+
+  const pointID = route.params.id as string;
+  const pointEntity = entityStore.point.find(
+    (item) => item.id === pointID
+  )!;
+  if (!pointEntity) router.push({ name: 'design' });
+  const point = pointEntity.point!;
+
+  const position = Cartographic.fromCartesian(
+    pointEntity.position!.getValue()!
+  );
+  const x = ref(Math.toDegrees(position!.longitude));
+  const y = ref(Math.toDegrees(position!.latitude));
+  const z = ref(position!.height);
+
+  const pixelSize = ref(point.pixelSize!.getValue());
+  const outlineWidth = ref(point.outlineWidth!.getValue());
+  const color = ref(point.color!.getValue()!.toCssColorString());
   const tempColor = ref('');
-  const outlineColor = ref('');
-  const desc = ref('');
-  const pointLabel = ref('');
+  const outlineColor = ref(point.outlineColor!.getValue()!.toCssColorString());
+  const pointDesc = JSON.parse(pointEntity.description as unknown as string);
+  const description = ref(pointDesc.description);
+  const pointLabel = ref(pointEntity.label!.text);
+
   const dialog = ref(false);
   const posMode = ref('degree');
   const label = ref(['经度', '纬度', '高度']);
@@ -223,76 +237,52 @@
     title: '输入图像URL或选择已有图像',
     url: '',
   });
-  let originProp = {
-    x: 0,
-    y: 0,
-    z: 0,
-    pixelSize: 0,
-    pointLabel: '',
-    outlineWidth: 0,
-    outlineColor: '',
-    color: '',
-    desc: '',
-    label: ['经度', '纬度', '高度'],
-    posMode: 'degree',
+  const originProp = {
+    originX: x.value,
+    originY: y.value,
+    originZ: z.value,
+    originPixelSize: pixelSize.value,
+    originPointLabel: pointLabel.value,
+    originOutlineWidth: outlineWidth.value,
+    originOutlineColor: outlineColor.value,
+    originColor: color.value,
+    originDescription: description.value,
+    originLabel: pointLabel.value,
   };
   let selectColorName = '';
-  let point = undefined as unknown as PointGraphics;
 
-  interface Description {
-    type: string;
-    description: string;
+  // 初始化，设定点的坐标、样式、图标、大小
+  function init() {
+    tipStore.tip = '初始化点信息';
+    x.value = originProp.originX;
+    y.value = originProp.originY;
+    z.value = originProp.originZ;
+    pixelSize.value = originProp.originPixelSize;
+    outlineWidth.value = originProp.originOutlineWidth;
+    color.value = originProp.originColor;
+    outlineColor.value = originProp.originOutlineColor;
+    description.value = originProp.originDescription;
+    pointLabel.value = originProp.originLabel;
+    label.value = ['经度', '纬度', '高度'];
+    posMode.value = 'degree';
   }
 
-  watch(
-    () => entityStore.currentEntity,
-    () => {
-      if (entityStore.currentEntity) {
-        const metadata = JSON.parse(
-          entityStore.currentEntity.description as unknown as string
-        ) as Description;
-        desc.value = metadata.description;
-        if (metadata.type == 'draw-point') init();
-        tipStore.tip = '已选中点';
-      } else {
-        tipStore.tip = '取消选中';
-        router.push({ name: 'design' });
-      }
-    },
-    {
-      immediate: true,
+  function getColor(selectColor: string) {
+    dialog.value = false;
+    if (selectColorName == 'color') color.value = selectColor;
+    else {
+      outlineColor.value = selectColor;
     }
-  );
-  function getRecord() {
-    originProp = {
-      x: x.value,
-      y: y.value,
-      z: z.value,
-      pixelSize: pixelSize.value,
-      outlineWidth: outlineWidth.value,
-      outlineColor: outlineColor.value,
-      color: color.value,
-      desc: '',
-      label: ['经度', '纬度', '高度'],
-      posMode: 'degree',
-      pointLabel: '',
-    };
   }
-  function setRecord() {
-    x.value = originProp.x;
-    y.value = originProp.y;
-    z.value = originProp.z;
-    pixelSize.value = originProp.pixelSize;
-    outlineWidth.value = originProp.outlineWidth;
-    color.value = originProp.color;
-    tempColor.value = originProp.outlineColor;
-    outlineColor.value = originProp.outlineColor;
-    desc.value = originProp.desc;
-    posMode.value = originProp.posMode;
-    label.value = originProp.label;
-    pointLabel.value = originProp.pointLabel;
+  function selectColor(colorName: string) {
+    selectColorName = colorName;
+    tempColor.value = colorName == 'color' ? color.value : outlineColor.value;
+    dialog.value = true;
   }
-  function resetPosition() {
+
+  //切换坐标格式
+  watch(posMode, () => {
+    tipStore.tip = '切换坐标格式';
     const currentX = entityStore.currentEntity?.position!.getValue()!
       .x as number;
     const currentY = entityStore.currentEntity?.position!.getValue()!
@@ -314,33 +304,9 @@
       y.value = Math.toDegrees(cartographic.latitude);
       z.value = cartographic.height;
     }
-  }
-  // 初始化，设定点的坐标、样式、图标、大小
-  function init() {
-    resetPosition();
-    pointLabel.value = entityStore.currentEntity!.label?.text?.getValue();
-    point = entityStore.currentEntity!.point!;
-    pixelSize.value = point.pixelSize?.getValue();
-    outlineWidth.value = point.outlineWidth?.getValue();
-    color.value = point.color!.getValue().toCssHexString();
-    outlineColor.value = point.outlineColor!.getValue().toCssHexString();
-    getRecord();
-  }
-  function getColor(selectColor: string) {
-    dialog.value = false;
-    if (selectColorName == 'color') color.value = selectColor;
-    else {
-      outlineColor.value = selectColor;
-    }
-  }
-  function selectColor(colorName: string) {
-    selectColorName = colorName;
-    tempColor.value = colorName == 'color' ? color.value : outlineColor.value;
-    dialog.value = true;
-  }
-  watch(posMode, () => {
-    resetPosition();
   });
+
+  //更新点状态
   watch(
     () => [
       x.value,
@@ -350,7 +316,7 @@
       color.value,
       outlineColor.value,
       outlineWidth.value,
-      desc.value,
+      description.value,
       pointLabel.value,
       selectMark.value,
     ],
@@ -364,22 +330,20 @@
         // @ts-expect-error: Unreachable code error
         entityStore.currentEntity.position = position;
       }
-      // @ts-expect-error: Unreachable code error
+
       point.pixelSize = pixelSize.value;
-      // @ts-expect-error: Unreachable code error
       point.outlineWidth = outlineWidth.value;
       // @ts-expect-error: Unreachable code error
       point.color = Color.fromCssColorString(color.value);
       // @ts-expect-error: Unreachable code error
       point.outlineColor = Color.fromCssColorString(outlineColor.value);
       // @ts-expect-error: Unreachable code error
-      entityStore.currentEntity.description = JSON.stringify({
-        type: 'draw-point',
-        description: desc.value,
+      point.description = JSON.stringify({
+        type: 'point',
+        description: description.value,
       });
       // 设置标签
-      entityStore.currentEntity!.label = {
-        // @ts-expect-error: Unreachable code error
+      pointEntity.label = {
         text: pointLabel.value, // 显示的文字内容
         // @ts-expect-error: Unreachable code error
         font: '14pt sans-serif', // 字体设置
@@ -420,10 +384,12 @@
     }
   );
   function deletePoint() {
+    tipStore.tip = '删除点';
     cesiumStore.viewer!.entities.remove(entityStore.currentEntity!);
     router.push({ name: 'design' });
   }
   function zoomTo() {
+    tipStore.tip = '缩放到点';
     cesiumStore.viewer!.camera.flyTo({
       destination: entityStore.currentEntity!.position!.getValue()!,
       orientation: {

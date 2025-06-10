@@ -133,24 +133,12 @@
     viewer.selectedEntityChanged.addEventListener(function (entity) {
       if (entity) {
         entityStore.currentEntity = entity;
-        console.log(
-          'JSON.parse(entity.description) :>> ',
-          JSON.parse(entity.description)
-        );
-        switch (JSON.parse(entity.description).type) {
-          case 'draw-point':
-            router.push({ name: 'point' });
-            break;
-          case 'draw-line':
-            router.push({ name: 'line' });
-            break;
-          case 'draw-polygon':
-            router.push({ name: 'polygon' });
-            break;
-          case 'aircraft':
-            router.push({ name: 'aircraft' });
-            break;
-        }
+        const description = JSON.parse(entity.description);
+        if (description.type)
+          router.push({
+            name: JSON.parse(entity.description).type,
+            params: { id: entity.id },
+          });
       }
     });
     initAircraft();

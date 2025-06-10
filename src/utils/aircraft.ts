@@ -2,34 +2,11 @@
  * @Author: ShirahaYuki  shirhayuki2002@gmail.com
  * @Date: 2025-06-06 10:50:32
  * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
- * @LastEditTime: 2025-06-09 10:41:10
+ * @LastEditTime: 2025-06-10 13:08:59
  * @FilePath: /cesium_project/src/utils/aircraft.ts
  * @Description: 无人机相关代码
  *
  * Copyright (c) 2025 by ShirahaYuki, All Rights Reserved.
- */
-
-/*
- *                   ___====-_  _-====___
- *             _--^^^#####//      \\#####^^^--_
- *          _-^##########// (    ) \\##########^-_
- *         -############//  |\^^/|  \\############-
- *       _/############//   (@::@)   \############\_
- *      /#############((     \\//     ))#############\
- *     -###############\\    (oo)    //###############-
- *    -#################\\  / VV \  //#################-
- *   -###################\\/      \//###################-
- *  _#/|##########/\######(   /\   )######/\##########|\#_
- *  |/ |#/\#/\#/\/  \#/\##\  |  |  /##/\#/  \/\#/\#/\#| \|
- *  `  |/  V  V  `   V  \#\| |  | |/#/  V   '  V  V  \|  '
- *     `   `  `      `   / | |  | | \   '      '  '   '
- *                      (  | |  | |  )
- *                     __\ | |  | | /__
- *                    (vvv(VVV)(VVV)vvv)
- *
- *      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *                神兽保佑            永无BUG
  */
 
 import {
@@ -86,7 +63,7 @@ const cesiumStore = useCesiumStore();
 class Aircraft extends EventTarget {
   public statusInfo: AircraftInfo;
   public viewer: Viewer;
-  public airplaneEntity: Entity | undefined;
+  public aircraftEntity: Entity | undefined;
   public airLine: CallbackPositionProperty | undefined;
   public lastUpdateTime: JulianDate;
   public nowUpdateTime: JulianDate;
@@ -102,7 +79,7 @@ class Aircraft extends EventTarget {
     //初始化全局cesium
     this.viewer = cesiumStore.viewer!;
     this.socket = new WebSocket('/aircraft/info?id=' + this.statusInfo.id);
-    this.airplaneEntity = undefined;
+    this.aircraftEntity = undefined;
     this.airLine = undefined;
     this.lastUpdateTime = JulianDate.now();
     this.nowUpdateTime = JulianDate.now();
@@ -164,7 +141,7 @@ class Aircraft extends EventTarget {
     );
     // const resource = await IonResource.fromAssetId(3442328);
     // 使用 CallbackProperty 动态更新位置
-    this.airplaneEntity = cesiumStore.viewer!.entities.add({
+    this.aircraftEntity = cesiumStore.viewer!.entities.add({
       position: this.airLine,
       model: {
         uri: aircraftModel,
@@ -202,7 +179,7 @@ class Aircraft extends EventTarget {
     });
     //获取可视锥的位置
     setInterval(() => {
-      const originalQuaternion = this.airplaneEntity?.orientation?.getValue();
+      const originalQuaternion = this.aircraftEntity?.orientation?.getValue();
       if (originalQuaternion) {
         const flipQuaternion = Quaternion.fromAxisAngle(
           Cartesian3.UNIT_X, // 绕 X 轴
@@ -348,4 +325,4 @@ class Aircraft extends EventTarget {
   }
 }
 
-export { type AircraftInfo, Aircraft };
+export { type AircraftInfo, Aircraft, type AircraftStatus };
