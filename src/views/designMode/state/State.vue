@@ -23,21 +23,24 @@
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { useCesiumStore } from '@/store/cesiumStore';
+  import { useEntityStore } from '@/store/entityStore';
   import { useRouter } from 'vue-router';
-  import { Cartesian3, Math } from 'cesium';
+  import { HeadingPitchRange, Math, SceneMode } from 'cesium';
   const router = useRouter();
   const cesiumStore = useCesiumStore();
+  const entityStore = useEntityStore();
   function goCruise() {
-    //相机对准中国
-    cesiumStore.viewer!.camera.flyTo({
-      destination: Cartesian3.fromDegrees(103.84, 31.15, 17850000),
-      orientation: {
-        heading: Math.toRadians(360),
-        pitch: Math.toRadians(-90),
-        roll: Math.toRadians(0),
-      },
-    });
+    cesiumStore.viewer!.scene.mode = SceneMode.SCENE3D;
     router.push({ name: 'cruise' });
+    // 流畅飞向实体
+    cesiumStore.viewer!.flyTo(entityStore.aircraft[0].aircraftEntity!, {
+      offset: new HeadingPitchRange(
+        Math.toRadians(0), // 朝向角
+        Math.toRadians(-45), // 俯仰角
+        28.284271 // 距离(米)
+      ),
+      duration: 2, // 动画持续时间(秒)
+    });
   }
   const tab = ref('1');
   function nextTab() {

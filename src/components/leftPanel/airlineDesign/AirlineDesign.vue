@@ -192,7 +192,8 @@
       cartographic.height = altitude.value;
       const position = Cartographic.toCartesian(cartographic);
       const distance = Cartesian3.distance(interpolatedCartesian, endPoint);
-      if (distance < 50) break;
+      //和终点最小间隔也要有设定的一半以防止两个点太接近
+      if (distance < interval / 2) break;
       interpolatedPoints.push(position);
     }
     return interpolatedPoints;
@@ -228,6 +229,10 @@
   }
   //结束航线绘制
   function endDraw() {
+    if (!handler) {
+      tipStore.tip = '请先开始绘制';
+      return;
+    }
     if (interpolate.value) interpolateAirline();
     //创建一个航线
     entityStore.airline.push({
@@ -236,6 +241,7 @@
       airline: airline!,
       airpoint: airpoint,
     });
+    //终止绘制
     tipStore.tip = `终止绘制，航线已添加${airpoint.length}个点`;
     handler!.removeInputAction(ScreenSpaceEventType.LEFT_CLICK);
     handler = undefined;

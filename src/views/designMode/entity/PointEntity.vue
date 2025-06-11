@@ -186,10 +186,9 @@
   const tipStore = useTipStore();
 
   const pointID = route.params.id as string;
-  const pointEntity = entityStore.point.find(
-    (item) => item.id === pointID
-  )!;
-  if (!pointEntity) router.push({ name: 'design' });
+  if (!entityStore.point.length) router.push({ name: 'design' });
+  const pointEntity = entityStore.point.find((item) => item.id === pointID)!;
+
   const point = pointEntity.point!;
 
   const position = Cartographic.fromCartesian(
@@ -233,6 +232,10 @@
       url: '4',
     },
   ];
+  // const selectMark = ref({
+  //   title: '输入图像URL或选择已有图像',
+  //   url: '',
+  // });
   const selectMark = ref({
     title: '输入图像URL或选择已有图像',
     url: '',

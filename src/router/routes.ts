@@ -60,6 +60,14 @@ const routes: RouteRecordRaw[] = [
         path: 'cruise',
         name: 'cruise',
         component: () => import('@/views/CruiseMode.vue'),
+        children: [
+          {
+            path: 'aircraft?id=:id',
+            name: 'cruise-aircraft',
+            component: () =>
+              import('@/views/cruiseMode/AircraftBottomPanel/AircraftInfo.vue'),
+          },
+        ],
       },
     ],
   },

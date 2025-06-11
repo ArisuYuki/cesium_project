@@ -1,8 +1,7 @@
 <template>
   <v-app class="app">
     <v-main>
-      <RouterView>
-      </RouterView>
+      <RouterView> </RouterView>
     </v-main>
   </v-app>
 </template>
@@ -59,4 +58,5 @@
   :deep(.main-color) {
     background-color: rgba(12, 17, 37, 0.6);
   }
+
 </style>

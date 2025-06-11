@@ -2,7 +2,7 @@
  * @Author: ShirahaYuki  shirhayuki2002@gmail.com
  * @Date: 2025-06-01 21:11:57
  * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
- * @LastEditTime: 2025-06-10 13:45:45
+ * @LastEditTime: 2025-06-11 10:08:07
  * @FilePath: /cesium_project/src/store/entityStore.ts
  * @Description: 全局实体仓库，存储地图上的各种实体
  *
@@ -23,6 +23,7 @@ export const useEntityStore = defineStore('entity', {
     currentEntity: undefined as Entity | undefined,
     //所有的无人机实体
     aircraft: [] as Aircraft[],
+    currentAircraft: undefined as Aircraft | undefined,
     //所有的航线实体
     airline: [] as Airline[],
   }),

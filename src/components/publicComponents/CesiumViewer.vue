@@ -37,6 +37,8 @@
         name: '测试机1',
         status: {
           location: [111.62712662878896, 30.43792756540471, 35.497846690354905],
+          orientation: [0, 0, 0],
+          shutdown: true,
           power: 85,
           speed: 0,
         },
@@ -47,6 +49,8 @@
         name: '测试机2',
         status: {
           location: [111.62812662878896, 30.43792756540471, 35.497846690354905],
+          orientation: [0, 0, 0],
+          shutdown: true,
           power: 70,
           speed: 1,
         },
@@ -57,6 +61,8 @@
         name: '测试机3',
         status: {
           location: [111.6292662878896, 30.43792756540471, 35.497846690354905],
+          orientation: [0, 0, 0],
+          shutdown: true,
           power: 20,
           speed: 60,
         },
@@ -131,11 +137,14 @@
       if (entity) {
         entityStore.currentEntity = entity;
         const description = JSON.parse(entity.description);
-        if (description.type)
+        if (description.type && route.path.split('/')[1] == 'design') {
           router.push({
             name: JSON.parse(entity.description).type,
             params: { id: entity.id },
           });
+        }
+      } else {
+        entityStore.currentEntity = undefined;
       }
     });
     initAircraft();

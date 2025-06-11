@@ -24,8 +24,17 @@ export default defineConfig([
     files: ['**/*.vue'],
     rules: {
       'vue/multi-word-component-names': 'off', // 关闭强制多单词命名
-      '@typescript-eslint/no-explicit-any': 'warn', //允许any
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off', //允许any
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
+    files: ['**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off', //允许any
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
     },
   },
 ]);

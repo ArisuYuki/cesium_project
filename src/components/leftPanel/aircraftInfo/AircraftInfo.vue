@@ -101,8 +101,8 @@
               color: 'rgba(255, 255, 255, 0.3)',
             },
             smooth: 0.2,
-            length: 10,
-            length2: 20,
+            length: 0,
+            length2: 0,
           },
           itemStyle: {
             color: '#c23531',

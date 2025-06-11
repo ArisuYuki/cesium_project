@@ -55,6 +55,7 @@ import {
   VerticalOrigin,
   HorizontalOrigin,
   Cartesian2,
+  HeadingPitchRoll,
   // IonResource,
 } from 'cesium';
 import { useCesiumStore } from '@/store/cesiumStore';
@@ -72,31 +73,30 @@ class Aircraft extends EventTarget {
   public viewer: Viewer;
   public aircraftEntity: Entity | undefined;
   public airLine: CallbackPositionProperty | undefined;
-  public lastUpdateTime: JulianDate;
-  public nowUpdateTime: JulianDate;
-  public nowLocation: Cartesian3;
-  public lastLocation: Cartesian3;
+  public currentLocation: Cartesian3;
+  public currentOrientation: Quaternion;
   public socket: WebSocket;
   public frustumPrimitive: Primitive | undefined;
   public frustumOutlinePrimitive: Primitive | undefined;
-  public orientation: Quaternion;
+  public orientation: Quaternion | undefined;
+  public pointIndex: number;
   constructor(initInfo: AircraftInfo) {
     super();
     this.statusInfo = initInfo;
+    this.pointIndex = 0;
     //初始化全局cesium
     this.viewer = cesiumStore.viewer!;
     this.socket = new WebSocket('/aircraft/info?id=' + this.statusInfo.id);
     this.aircraftEntity = undefined;
     this.airLine = undefined;
-    this.lastUpdateTime = JulianDate.now();
-    this.nowUpdateTime = JulianDate.now();
-    this.orientation = new Quaternion(0, 0, 0, 1);
-    this.nowLocation = Cartesian3.fromDegrees(
-      this.statusInfo.status.location[0],
-      this.statusInfo.status.location[1],
-      this.statusInfo.status.location[2]
+    this.currentOrientation = Quaternion.fromHeadingPitchRoll(
+      new HeadingPitchRoll(
+        this.statusInfo.status.orientation[0],
+        this.statusInfo.status.orientation[1],
+        this.statusInfo.status.orientation[2]
+      )
     );
-    this.lastLocation = Cartesian3.fromDegrees(
+    this.currentLocation = Cartesian3.fromDegrees(
       this.statusInfo.status.location[0],
       this.statusInfo.status.location[1],
       this.statusInfo.status.location[2]
@@ -112,37 +112,16 @@ class Aircraft extends EventTarget {
     // const aircraft = await IonResource.fromAssetId(3442886);
 
     this.airLine = new CallbackPositionProperty(
-      (time?: JulianDate, result?: Cartesian3) => {
-        // return this.nowLocation; // 返回最新位置
-        if (Cartesian3.equals(this.nowLocation, this.lastLocation)) {
-          return Cartesian3.clone(this.lastLocation, result);
-        }
-
-        const totalSeconds = JulianDate.secondsDifference(
-          this.nowUpdateTime,
-          this.lastUpdateTime
-        );
-        const elapsedSeconds = JulianDate.secondsDifference(
-          time!,
-          this.lastUpdateTime
-        );
-        const fraction = elapsedSeconds / totalSeconds;
-        const pos = Cartesian3.lerp(
-          this.lastLocation,
-          this.nowLocation,
-          fraction,
-          new Cartesian3()
-        );
+      (_time?: JulianDate, result?: Cartesian3) => {
         //更新可视锥
         this.addFrustum(
-          pos,
-          this.orientation!,
+          this.currentLocation,
+          this.currentOrientation,
           40,
           1,
           this.statusInfo.status.location[2]
         );
-        // 使用Cesium的线性插值方法
-        return pos;
+        return this.currentLocation;
       },
       false // 不缓存，每次都重新计算
     );
@@ -156,6 +135,7 @@ class Aircraft extends EventTarget {
         scale: 1,
       },
       orientation: new VelocityOrientationProperty(this.airLine), // 自动计算朝向
+      // orientation: this.orientation,
       path: { width: 3 }, // 显示飞行路径
       viewFrom: new Cartesian3(-100, 0, 10),
       description: JSON.stringify({
@@ -184,32 +164,6 @@ class Aircraft extends EventTarget {
       const newState = JSON.parse(event.data) as AircraftStatus;
       this.dispatchEvent(new CustomEvent('update', { detail: newState }));
     });
-    //获取可视锥的位置
-    setInterval(() => {
-      const originalQuaternion = this.aircraftEntity?.orientation?.getValue();
-      if (originalQuaternion) {
-        const flipQuaternion = Quaternion.fromAxisAngle(
-          Cartesian3.UNIT_X, // 绕 X 轴
-          Math.PI // 旋转 180 度
-        );
-        const newQuaternion = Quaternion.multiply(
-          originalQuaternion,
-          flipQuaternion,
-          new Quaternion()
-        );
-        this.orientation = newQuaternion;
-      }
-    }, 100);
-
-    // setInterval(() => {
-    //   this.statusInfo.status.location[1] += 0.00001;
-    //   this.statusInfo.status.power -= 1;
-    //   this.updateState({
-    //     location: this.statusInfo.status.location,
-    //     power: this.statusInfo.status.power,
-    //     speed: 0,
-    //   });
-    // }, 1000);
   }
   /**
    * @description: 更新无人机状态
@@ -218,14 +172,26 @@ class Aircraft extends EventTarget {
    */
   updateState(newState: AircraftStatus): void {
     this.statusInfo.status = newState;
-    this.lastUpdateTime = this.nowUpdateTime;
-    this.nowUpdateTime = JulianDate.now();
-    this.lastLocation = this.nowLocation;
-    this.nowLocation = Cartesian3.fromDegrees(
+    this.currentLocation = Cartesian3.fromDegrees(
       newState.location[0],
       newState.location[1],
       newState.location[2]
     );
+    this.currentOrientation = Quaternion.fromHeadingPitchRoll(
+      new HeadingPitchRoll(
+        newState.orientation[0],
+        newState.orientation[1],
+        newState.orientation[2]
+      )
+    );
+  }
+  /**
+   * @description: 仅在测试阶段使用
+   * @param {AircraftInfo} newState
+   * @return {*}
+   */
+  updata(newState: AircraftStatus) {
+    this.dispatchEvent(new CustomEvent('update', { detail: newState }));
   }
   /**
    * @description: 为无人机指定航线
@@ -263,7 +229,7 @@ class Aircraft extends EventTarget {
    */
   addFrustum(
     position: Cartesian3,
-    orientation: Quaternion,
+    originalQuaternion: Quaternion,
     fov = 30,
     near = 1,
     far = 500,
@@ -275,6 +241,15 @@ class Aircraft extends EventTarget {
       this.frustumPrimitive = undefined;
       this.frustumOutlinePrimitive = undefined;
     }
+    const flipQuaternion = Quaternion.fromAxisAngle(
+      Cartesian3.UNIT_X, // 绕 X 轴
+      Math.PI // 旋转 180 度
+    );
+    const newQuaternion = Quaternion.multiply(
+      originalQuaternion,
+      flipQuaternion,
+      new Quaternion()
+    );
     //创建时锥体
     const frustum = new PerspectiveFrustum({
       fov: Math.toRadians(fov),
@@ -286,7 +261,7 @@ class Aircraft extends EventTarget {
       geometry: new FrustumGeometry({
         frustum: frustum,
         origin: position,
-        orientation: orientation,
+        orientation: newQuaternion,
         vertexFormat: VertexFormat.POSITION_ONLY,
       }),
       attributes: {
@@ -300,7 +275,7 @@ class Aircraft extends EventTarget {
       geometry: new FrustumOutlineGeometry({
         frustum: frustum,
         origin: position,
-        orientation: orientation,
+        orientation: newQuaternion,
       }),
       attributes: {
         color: ColorGeometryInstanceAttribute.fromColor(

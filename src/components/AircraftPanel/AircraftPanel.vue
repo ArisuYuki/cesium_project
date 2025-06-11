@@ -57,9 +57,7 @@
     <div class="panel-list-content">
       <div class="panel-list-content-item">
         <v-tabs-window v-model="tabs">
-          <v-tabs-window-item value="aircraft-info">
-            <AircraftInfo></AircraftInfo>
-          </v-tabs-window-item>
+          <v-tabs-window-item value="aircraft-info"> </v-tabs-window-item>
           <v-tabs-window-item value="airline-design"> </v-tabs-window-item>
           <v-tabs-window-item value="airline-cruise"> </v-tabs-window-item>
           <v-tabs-window-item value="asset-manage"> </v-tabs-window-item>

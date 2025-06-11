@@ -66,11 +66,10 @@
   const tipStore = useTipStore();
   const entityStore = useEntityStore();
   const aircraftID = route.params.id as string;
-
+  if (!entityStore.aircraft.length) router.push({ name: 'design' });
   const aircraft = entityStore.aircraft.find(
     (item) => item.aircraftEntity!.id === aircraftID
   )!;
-  if (!aircraft) router.push({ name: 'design' });
 
   const position = Cartographic.fromCartesian(
     aircraft.aircraftEntity!.position!.getValue()!

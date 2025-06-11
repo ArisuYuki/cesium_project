@@ -5,18 +5,107 @@
     </div>
     <div class="right-panel">
       <div class="top-panel">
-        <div class="aircraft-view"></div>
+        <div class="aircraft-view">
+          <CameraView></CameraView>
+        </div>
         <div class="cesium-view-container">
+          <div class="aircraft-list">
+            <v-icon
+              icon="mdi-fan"
+              :class="{ 'rotate-fan': changeAircraft }"
+            ></v-icon>
+            <v-select
+              v-model="selectedAircraft"
+              :items="aircraftList"
+              item-title="name"
+              item-value="id"
+              class="aircraft-select"
+              density="compact"
+              variant="underlined"
+              hide-details
+            ></v-select>
+          </div>
+
           <div id="cesium-view"></div>
         </div>
       </div>
-      <div class="bottom-panel"></div>
+      <div class="bottom-panel">
+        <BottomPanel></BottomPanel>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
   import AircraftPanel from '@/components/AircraftPanel/AircraftPanel.vue';
+  import BottomPanel from './cruiseMode/AircraftBottomPanel.vue';
+  import CameraView from './cruiseMode/CameraView.vue';
+  import { useCesiumStore } from '@/store/cesiumStore';
+  import { useEntityStore } from '@/store/entityStore';
+  import { HeadingPitchRange, Math, Cartesian3, Entity } from 'cesium';
+  import { watch, ref } from 'vue';
+  import { useRouter } from 'vue-router';
+  const router = useRouter();
+  const cesiumStore = useCesiumStore();
+  const entityStore = useEntityStore();
+
+  if (!entityStore.aircraft.length) router.push({ name: 'design' });
+  const aircraftList = ref(
+    entityStore.aircraft.map((aircraft) => {
+      return {
+        id: aircraft.aircraftEntity!.id,
+        name: aircraft.statusInfo!.name,
+      };
+    })
+  );
+  const selectedAircraft = ref(aircraftList.value[0].id);
+  const changeAircraft = ref(false);
+  watch(
+    selectedAircraft,
+    () => {
+      const aircraft = entityStore.aircraft.find(
+        (aircraft) => aircraft.aircraftEntity!.id === selectedAircraft.value
+      )!;
+      if (!aircraft) return;
+      //设置当前选中的飞机
+      entityStore.currentAircraft = aircraft;
+
+      router.push({
+        name: 'cruise-aircraft',
+        params: { id: aircraft.aircraftEntity!.id },
+      });
+
+      flyToAircraft(aircraft.aircraftEntity!);
+      changeAircraft.value = true;
+      setTimeout(() => {
+        changeAircraft.value = false;
+      }, 2000);
+    },
+    {
+      immediate: true,
+    }
+  );
+  // 流畅飞向实体
+  function flyToAircraft(aircraftEntity: Entity) {
+    cesiumStore
+      .viewer!.flyTo(aircraftEntity, {
+        offset: new HeadingPitchRange(
+          Math.toRadians(0), // 朝向角
+          Math.toRadians(-45), // 俯仰角
+          28.284271 // 距离(米)
+        ),
+        duration: 2, // 动画持续时间(秒)
+      })
+      .then(function () {
+        // 飞行完成后锁定实体
+        // @ts-expect-error: 设定视角
+        aircraftEntity!.viewFrom = new Cartesian3(0, -20, 20);
+        cesiumStore.viewer!.trackedEntity = aircraftEntity!;
+      });
+    entityStore.currentAircraft = entityStore.aircraft.find(
+      (aircraft) => aircraft.aircraftEntity!.id === aircraftEntity.id
+    );
+  }
 </script>
 
 <style lang="scss" scoped>
@@ -102,6 +191,38 @@
     100% {
       width: 100%;
       height: 100%;
+    }
+  }
+  .aircraft-list {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    z-index: 1000;
+    pointer-events: all;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+  .aircraft-select {
+    margin-left: 16px;
+  }
+  :deep(.v-field__input) {
+    padding: 0;
+  }
+  :deep(.v-field__append-inner) {
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .rotate-fan {
+    animation: rotate 2s ease-in-out;
+  }
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(1800deg);
     }
   }
 </style>
