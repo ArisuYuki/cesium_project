@@ -77,8 +77,8 @@
 
 <script lang="ts" setup>
   import AircraftPanel from '@/components/AircraftPanel/AircraftPanel.vue';
-  import BottomPanel from './cruiseMode/AircraftBottomPanel.vue';
-  import CameraView from './cruiseMode/CameraView.vue';
+  import BottomPanel from '@/views/cruiseMode/AircraftBottomPanel.vue';
+  import CameraView from '@/views/cruiseMode/CameraView.vue';
   import { useCesiumStore } from '@/store/cesiumStore';
   import { useEntityStore } from '@/store/entityStore';
   import { HeadingPitchRange, Math, Cartesian3, Entity } from 'cesium';
@@ -217,6 +217,7 @@
   //监听键盘按键
   window.addEventListener('keydown', keydown);
   window.addEventListener('keyup', keyup);
+
   /**
    * @description: 每秒发送更新位置请求,待做，必须配合服务器
    */

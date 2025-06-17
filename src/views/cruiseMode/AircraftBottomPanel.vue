@@ -7,7 +7,7 @@
         <v-progress-linear
           color="light-blue"
           height="10"
-          :model-value="10"
+          :model-value="statusInfo.status.power"
           striped
           rounded
         >
@@ -49,7 +49,7 @@
         </div>
         <div class="time-info">
           <div class="time-item">
-            <div>预估剩余时间</div>
+            <div>剩余飞行时间</div>
             <div class="time">
               {{ (statusInfo.status.timeLeft / 60).toFixed(0) }}分
               {{ statusInfo.status.timeLeft % 60 }}秒
@@ -85,7 +85,9 @@
 
           <div class="info-text">
             <v-icon icon="mdi-speedometer"></v-icon>
-            <div class="text-content">30km/h</div>
+            <div class="text-content">
+              {{ statusInfo.status.speed.toFixed(0) }}km/h
+            </div>
           </div>
 
           <div class="info-text">
@@ -133,6 +135,7 @@
     Transforms,
     Quaternion,
     HeadingPitchRoll,
+    Color,
   } from 'cesium';
   // @ts-expect-error: Unreachable code error
   import HeightIndicator from './HeightIndicator.vue';
@@ -179,23 +182,26 @@
     //更改电量
     statusInfo.value.status.power -= 0.1;
   }
+  const hoverAircraft = ref(false);
   function startCruise() {
     //没有找到航线直接返回
     const airline = entityStore.airline.find((item) => {
       return item.id === selectID.value;
     });
     if (!airline) return;
+    //启动飞机
+    statusInfo.value.status.shutdown = false;
 
     //记录飞行到了哪个点
     let i = 0;
     const currentAircraft = entityStore.currentAircraft!;
     //每0.1s飞行0.1m
-    const id = setInterval(() => {
-      consume();
+    let id: number | undefined = setInterval(() => {
       //如果飞完了，返航
       if (i == airline.airpoint.length) {
         clearInterval(id);
-        stopCruise();
+        id = undefined;
+        // cannelCruise();
       } else {
         //没飞完，不停飞
         //拿到下一个航点的坐标
@@ -203,8 +209,16 @@
         const currentPos = currentEntity.position!.getValue()!;
         //飞到了下一个点，i++
         if (Cartesian3.distance(currentPos, pointPos) < 1) {
+          // @ts-expect-error:改变经过点的颜色
+          airline.airpoint[i].point!.color = Color.BLUE;
+          // @ts-expect-error:改变经过点的标签颜色
+          airline.airpoint[i].label.fillColor = Color.BLUE; // 文字颜色
+          // @ts-expect-error:改变经过点的标签颜色
+          airline.airpoint[i].label.outlineColor = Color.BLUE; // 文字颜色
           i++;
         } else {
+          //如果飞机在悬停中，那什么也不做
+          if (hoverAircraft.value) return;
           //计算方向向量
           const direction = Cartesian3.subtract(
             pointPos,
@@ -240,15 +254,23 @@
             angle.pitch,
             angle.roll,
           ];
-
+          //随便给一个速度
           statusInfo.value.status.speed = 40 + Math.random() * 10;
 
           currentAircraft.updateState(statusInfo.value.status);
         }
       }
     }, 100);
+    //每秒更新时间
+    const id2: number | undefined = setInterval(() => {
+      consume();
+      if (!id) clearInterval(id2);
+    }, 1000);
   }
-  function stopCruise() {}
+  function stopCruise() {
+    hoverAircraft.value = !hoverAircraft.value;
+    statusInfo.value.status.shutdown = hoverAircraft.value;
+  }
   function land() {}
   function cannelCruise() {}
 </script>

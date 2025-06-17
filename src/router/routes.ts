@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
         path: 'design',
         name: 'design',
         redirect: { name: 'state' },
-        component: () => import('@/views/DesignMode.vue'),
+        component: () => import('@/pages/DesignMode.vue'),
         children: [
           {
             path: 'entity',
@@ -59,7 +59,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'cruise',
         name: 'cruise',
-        component: () => import('@/views/CruiseMode.vue'),
+        component: () => import('@/pages/CruiseMode.vue'),
         children: [
           {
             path: 'aircraft?id=:id',

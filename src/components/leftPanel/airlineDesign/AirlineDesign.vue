@@ -141,6 +141,7 @@
     if (!handler) {
       handler = new ScreenSpaceEventHandler(cesiumStore.viewer!.scene.canvas);
     }
+    if (airpoint.length > 0) return;
 
     airline = undefined;
     airpoint = [];
@@ -237,7 +238,7 @@
     //创建一个航线
     entityStore.airline.push({
       id: uuidv4(),
-      name: '航线' + entityStore.airline.length,
+      name: '航线' + entityStore.airline.length + 1,
       airline: airline!,
       airpoint: airpoint,
     });

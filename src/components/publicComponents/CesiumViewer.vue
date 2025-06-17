@@ -43,7 +43,7 @@
           speed: 0,
           timeUsed: 0,
           //剩余的可用时间
-          timeLeft: 0,
+          timeLeft: 1500,
         },
         airline: [],
       },

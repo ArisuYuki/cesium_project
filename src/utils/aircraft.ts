@@ -120,13 +120,12 @@ class Aircraft extends EventTarget {
     this.airLine = new CallbackPositionProperty(
       (_time?: JulianDate, result?: Cartesian3) => {
         //更新可视锥
-        // this.addFrustum(
-        //   this.currentLocation,
-        //   this.currentOrientation,
-        //   40,
-        //   1,
-        //   this.statusInfo.status.location[2]
-        // );
+        this.addFrustum(
+          this.currentLocation,
+          40,
+          1,
+          this.statusInfo.status.location[2]
+        );
         return this.currentLocation;
       },
       false // 不缓存，每次都重新计算
@@ -183,6 +182,14 @@ class Aircraft extends EventTarget {
       newState.location[1],
       newState.location[2]
     );
+    this.currentOrientation = Quaternion.fromHeadingPitchRoll(
+      new HeadingPitchRoll(
+        newState.orientation[0],
+        newState.orientation[1],
+        newState.orientation[2]
+      )
+    );
+
     // @ts-expect-error: 缺少属性
     this.aircraftEntity!.orientation = Quaternion.fromHeadingPitchRoll(
       new HeadingPitchRoll(
@@ -292,7 +299,6 @@ class Aircraft extends EventTarget {
    */
   addFrustum(
     position: Cartesian3,
-    originalQuaternion: Quaternion,
     fov = 30,
     near = 1,
     far = 500,
@@ -309,7 +315,7 @@ class Aircraft extends EventTarget {
       Math.PI // 旋转 180 度
     );
     const newQuaternion = Quaternion.multiply(
-      originalQuaternion,
+      this.currentOrientation,
       flipQuaternion,
       new Quaternion()
     );

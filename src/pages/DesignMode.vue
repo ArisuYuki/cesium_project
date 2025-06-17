@@ -50,8 +50,8 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import RightPanel from '../components/rightPanel/RightPanel.vue';
-  import LeftPanel from '../components/leftPanel/LeftPanel.vue';
+  import RightPanel from '@/components/rightPanel/RightPanel.vue';
+  import LeftPanel from '@/components/leftPanel/LeftPanel.vue';
   import { useCesiumStore } from '@/store/cesiumStore';
   const cesiumStore = useCesiumStore();
   const hiddenLeftPanel = ref(false);
