@@ -153,6 +153,7 @@
     Cartesian3,
     Cartographic,
     Matrix3,
+    IonResource,
   } from 'cesium';
   import { useCesiumStore } from '@/store/cesiumStore';
   const tipStore = useTipStore();
@@ -177,6 +178,12 @@
     tileset = cesiumStore.viewer!.scene.primitives.add(
       await Cesium3DTileset.fromIonAssetId(3427446)
     );
+    // Add the tileset to the scene
+    // tileset = cesiumStore.viewer!.scene.primitives.add(
+    //   await Cesium3DTileset.fromUrl(
+    //     '/data/mytiles/tileset.json'
+    //   )
+    // );
     const boundingSphere = tileset!.boundingSphere;
     const cartographic = Cartographic.fromCartesian(boundingSphere.center);
     center = boundingSphere.center;

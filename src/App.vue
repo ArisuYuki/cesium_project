@@ -58,5 +58,13 @@
   :deep(.main-color) {
     background-color: rgba(12, 17, 37, 0.6);
   }
+  :deep(.placeholder) {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
 </style>

@@ -12,8 +12,16 @@
             </div>
           </div>
         </v-tabs-window-item>
-        <v-tabs-window-item value="2"> </v-tabs-window-item>
-        <v-tabs-window-item value="3"> </v-tabs-window-item>
+        <v-tabs-window-item value="2">
+          <div class="bottom-content">
+            <div class="placeholder">施工中...</div>
+          </div>
+        </v-tabs-window-item>
+        <v-tabs-window-item value="3">
+          <div class="bottom-content">
+            <div class="placeholder">施工中...</div>
+          </div>
+        </v-tabs-window-item>
       </v-tabs-window>
       <div class="right-border" @click="nextTab"></div>
     </div>
@@ -204,5 +212,10 @@
     display: flex;
     height: 100%;
     width: 60%;
+  }
+  .bottom-content {
+    height: 100%;
+    width: 100%;
+    padding: 8px;
   }
 </style>

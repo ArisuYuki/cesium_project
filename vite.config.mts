@@ -2,7 +2,7 @@
  * @Author: ShirahaYuki  shirhayuki2002@gmail.com
  * @Date: 2025-05-31 11:24:03
  * @LastEditors: ShirahaYuki  shirhayuki2002@gmail.com
- * @LastEditTime: 2025-06-06 12:25:52
+ * @LastEditTime: 2025-06-16 11:44:36
  * @FilePath: /cesium_project/vite.config.mts
  * @Description:
  *
@@ -51,7 +51,22 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    // proxy: {
+    //   '/data': {
+    //     target: 'http://localhost:12345',
+    //     changeOrigin: true,
+    //     rewrite: (path) => path.replace(/^\/data/, ''),
+    //   },
+    // },
+    proxy: {
+      '/data': {
+        target: 'http://localhost:12345',//你的后端服务器地址
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/data/, ''),
+      },
+    },
   },
+  
   css: {
     preprocessorOptions: {
       sass: {

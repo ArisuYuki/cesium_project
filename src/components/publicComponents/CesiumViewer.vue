@@ -34,37 +34,16 @@
     const aircraftList: AircraftInfo[] = [
       {
         id: '1',
-        name: '测试机1',
+        name: '大疆m300',
         status: {
           location: [111.62712662878896, 30.43792756540471, 35.497846690354905],
-          orientation: [0, 0, 0],
+          orientation: [0, 0,0],
           shutdown: true,
-          power: 85,
+          power: 100,
           speed: 0,
-        },
-        airline: [],
-      },
-      {
-        id: '2',
-        name: '测试机2',
-        status: {
-          location: [111.62812662878896, 30.43792756540471, 35.497846690354905],
-          orientation: [0, 0, 0],
-          shutdown: true,
-          power: 70,
-          speed: 1,
-        },
-        airline: [],
-      },
-      {
-        id: '3',
-        name: '测试机3',
-        status: {
-          location: [111.6292662878896, 30.43792756540471, 35.497846690354905],
-          orientation: [0, 0, 0],
-          shutdown: true,
-          power: 20,
-          speed: 60,
+          timeUsed: 0,
+          //剩余的可用时间
+          timeLeft: 0,
         },
         airline: [],
       },

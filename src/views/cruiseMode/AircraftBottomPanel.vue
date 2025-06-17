@@ -1,250 +1,386 @@
 <template>
-  <div class="aircraft-bottom-panel">
-    <div class="controller">
-      <div class="controller-container">
-        <div class="controller-out">
-          <div v-show="leftBtnForward" class="mask-forward"></div>
-          <div v-show="leftBtnBack" class="mask-back"></div>
-          <div v-show="leftBtnLeft" class="mask-left"></div>
-          <div v-show="leftBtnRight" class="mask-right"></div>
-        </div>
-        <div class="controller-in left"></div>
-        <div class="controller-btn"></div>
+  <div class="info-window">
+    <div class="aircraft-title">
+      <div class="text">飞机型号：{{ statusInfo.name }}</div>
+      <div class="power-bar">
+        <div class="power-title text">电量</div>
+        <v-progress-linear
+          color="light-blue"
+          height="10"
+          :model-value="10"
+          striped
+          rounded
+        >
+          <template v-slot:default="{ value }">
+            <div class="text">{{ value }}%</div>
+          </template></v-progress-linear
+        >
       </div>
     </div>
-    <RouterView>
-      <template v-slot:default="{ Component }">
-        <component :is="Component" />
-      </template>
-    </RouterView>
-    <div class="controller">
-      <div class="controller-container">
-        <div class="controller-out">
-          <div v-show="rightBtnForward" class="mask-forward"></div>
-          <div v-show="rightBtnBack" class="mask-back"></div>
-          <div v-show="rightBtnLeft" class="mask-left"></div>
-          <div v-show="rightBtnRight" class="mask-right"></div>
+    <v-divider thickness="2px" class="divider" color="primary"> </v-divider>
+    <div class="info-window-content text">
+      <div class="aircraft-info">
+        <div class="aircraft-nest">
+          <div>在这里显示机巢画面</div>
         </div>
-        <div class="controller-in right"></div>
-        <div class="controller-btn"></div>
+        <div class="cruise-select">
+          <v-select
+            v-model="selectID"
+            label="选择航线"
+            :items="airlines"
+            item-title="name"
+            item-value="id"
+            density="compact"
+            hide-details
+          >
+          </v-select>
+          <div class="btn-group">
+            <v-btn @click="startCruise" variant="outlined" class="text"
+              >巡航</v-btn
+            >
+            <v-btn @click="stopCruise" variant="outlined" class="text"
+              >急停</v-btn
+            >
+            <v-btn @click="cannelCruise" variant="outlined" class="text"
+              >返航</v-btn
+            >
+            <v-btn @click="land" variant="outlined" class="text">降落</v-btn>
+          </div>
+        </div>
+        <div class="time-info">
+          <div class="time-item">
+            <div>预估剩余时间</div>
+            <div class="time">
+              {{ (statusInfo.status.timeLeft / 60).toFixed(0) }}分
+              {{ statusInfo.status.timeLeft % 60 }}秒
+            </div>
+          </div>
+          <div class="time-item">
+            <div>已飞行时间</div>
+            <div class="time">
+              {{ (statusInfo.status.timeUsed / 60).toFixed(0) }}分
+              {{ statusInfo.status.timeUsed % 60 }}秒
+            </div>
+          </div>
+        </div>
+        <div class="status-info">
+          <div v-if="statusInfo.status.shutdown" class="info-text">
+            <v-icon icon="mdi-fan-off"></v-icon>
+            <div class="text-content">待机中</div>
+          </div>
+          <div v-else class="info-text">
+            <v-icon icon="mdi-fan" class="rotate-fan"></v-icon>
+            <div class="text-content">飞行中</div>
+          </div>
+
+          <div class="info-text">
+            <v-icon icon="mdi-power-plug-off"></v-icon>
+            <div class="text-content">未充电</div>
+          </div>
+
+          <!-- <div class="info-text">
+            <v-icon icon="mdi-power-plug" color="primary"></v-icon>
+            <div class="text-content">充电中</div>
+          </div> -->
+
+          <div class="info-text">
+            <v-icon icon="mdi-speedometer"></v-icon>
+            <div class="text-content">30km/h</div>
+          </div>
+
+          <div class="info-text">
+            <v-icon icon="mdi-wifi-strength-3"></v-icon>
+            <div class="text-content">信号良好</div>
+          </div>
+        </div>
+
+        <v-divider thickness="2px" class="divider" color="primary" vertical>
+          <div class="v-text">当前高度</div>
+        </v-divider>
+        <div class="height-indicate">
+          <div class="height-indicate-text">
+            <div
+              class="indicator"
+              :style="{
+                bottom: `${(100 * statusInfo.status.location[2]) / maxHeight}%`,
+              }"
+            >
+              <div class="text">
+                {{ statusInfo.status.location[2].toFixed(1) }}米
+              </div>
+              <v-icon icon="mdi-arrow-right" class="text"></v-icon>
+            </div>
+          </div>
+          <HeightIndicator
+            :width="40"
+            :levels="10"
+            :minValue="0"
+            :maxValue="maxHeight"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, onUnmounted } from 'vue';
-  const leftBtnForward = ref(false);
-  const leftBtnBack = ref(false);
-  const leftBtnLeft = ref(false);
-  const leftBtnRight = ref(false);
-  const rightBtnForward = ref(false);
-  const rightBtnBack = ref(false);
-  const rightBtnLeft = ref(false);
-  const rightBtnRight = ref(false);
+  import { ref, type Ref } from 'vue';
+  import { useEntityStore } from '@/store/entityStore';
+  import {
+    Math as CesiumMath,
+    Cartographic,
+    Cartesian3,
+    Transforms,
+    Quaternion,
+    HeadingPitchRoll,
+  } from 'cesium';
+  // @ts-expect-error: Unreachable code error
+  import HeightIndicator from './HeightIndicator.vue';
+  const maxHeight = 1000;
+  const entityStore = useEntityStore();
+  //当前的飞机
+  const currentAircraft = entityStore.currentAircraft!;
+  //当前的飞机实体
+  const currentEntity = currentAircraft.aircraftEntity!;
+  //当前飞机的位置
+  const currentPos = ref(
+    Cartographic.fromCartesian(currentEntity.position!.getValue()!)
+  );
+  //当前飞机的状态
+  const statusInfo = ref(currentAircraft.statusInfo);
 
-  // @ts-expect-error: 缺少类型定义
-  const keyup = (e) => {
-    switch (e.key) {
-      case 'ArrowUp':
-        rightBtnForward.value = false;
-        break;
-      case 'ArrowDown':
-        rightBtnBack.value = false;
-        break;
-      case 'ArrowLeft':
-        rightBtnLeft.value = false;
-        break;
-      case 'ArrowRight':
-        rightBtnRight.value = false;
-        break;
-      case 'w':
-        leftBtnForward.value = false;
-        break;
-      case 's':
-        leftBtnBack.value = false;
-        break;
-      case 'a':
-        leftBtnLeft.value = false;
-        break;
-      case 'd':
-        leftBtnRight.value = false;
-        break;
-    }
-  };
-  // @ts-expect-error: 缺少类型定义
-  const keydown = (e) => {
-    e.preventDefault();
-    switch (e.key) {
-      case 'ArrowUp':
-        rightBtnForward.value = true;
-        break;
-      case 'ArrowDown':
-        rightBtnBack.value = true;
-        break;
-      case 'ArrowLeft':
-        rightBtnLeft.value = true;
-        break;
-      case 'ArrowRight':
-        rightBtnRight.value = true;
-        break;
-      case 'w':
-        leftBtnForward.value = true;
-        break;
-      case 's':
-        leftBtnBack.value = true;
-        break;
-      case 'a':
-        leftBtnLeft.value = true;
-        break;
-      case 'd':
-        leftBtnRight.value = true;
-        break;
-    }
-  };
-  //监听键盘按键
-  window.addEventListener('keydown', keydown);
-  window.addEventListener('keyup', keyup);
-  /**
-   * @description: 每秒发送更新位置请求,待做，必须配合服务器
-   */
+  const airlines = ref(
+    entityStore.airline.map((item) => {
+      return {
+        name: item.name,
+        id: item.id,
+      };
+    })
+  );
+  if (!airlines.value.length) {
+    airlines.value = [
+      {
+        name: '无航线',
+        id: '',
+      },
+    ];
+  }
+  const selectID = ref('');
 
-
-  onUnmounted(() => {
-    window.removeEventListener('keydown', keydown);
-    window.removeEventListener('keyup', keyup);
+  //订阅一个更新状态的事件
+  currentAircraft.addEventListener('update', (event) => {
+    statusInfo.value.status = (event as CustomEvent).detail;
   });
+
+  function consume() {
+    //更改时间
+    statusInfo.value.status.timeUsed += 1;
+    statusInfo.value.status.timeLeft -= 1;
+    //更改电量
+    statusInfo.value.status.power -= 0.1;
+  }
+  function startCruise() {
+    //没有找到航线直接返回
+    const airline = entityStore.airline.find((item) => {
+      return item.id === selectID.value;
+    });
+    if (!airline) return;
+
+    //记录飞行到了哪个点
+    let i = 0;
+    const currentAircraft = entityStore.currentAircraft!;
+    //每0.1s飞行0.1m
+    const id = setInterval(() => {
+      consume();
+      //如果飞完了，返航
+      if (i == airline.airpoint.length) {
+        clearInterval(id);
+        stopCruise();
+      } else {
+        //没飞完，不停飞
+        //拿到下一个航点的坐标
+        const pointPos = airline.airpoint[i].position!.getValue()!;
+        const currentPos = currentEntity.position!.getValue()!;
+        //飞到了下一个点，i++
+        if (Cartesian3.distance(currentPos, pointPos) < 1) {
+          i++;
+        } else {
+          //计算方向向量
+          const direction = Cartesian3.subtract(
+            pointPos,
+            currentPos,
+            new Cartesian3()
+          );
+          //归一化方向向量
+          Cartesian3.normalize(direction, direction);
+
+          //计算新的坐标,转换为经纬度
+          let nowPos = Cartographic.fromCartesian(
+            Cartesian3.add(
+              currentPos,
+              Cartesian3.multiplyByScalar(direction, 1, new Cartesian3()),
+              new Cartesian3()
+            )
+          );
+          //用方向向量计算四元数
+          const result = Quaternion.fromRotationMatrix(
+            Transforms.rotationMatrixFromPositionVelocity(currentPos, direction)
+          );
+          //转换为姿态角
+          const angle = HeadingPitchRoll.fromQuaternion(result);
+
+          statusInfo.value.status.location = [
+            CesiumMath.toDegrees(nowPos.longitude),
+            CesiumMath.toDegrees(nowPos.latitude),
+            nowPos.height,
+          ];
+
+          statusInfo.value.status.orientation = [
+            angle.heading,
+            angle.pitch,
+            angle.roll,
+          ];
+
+          statusInfo.value.status.speed = 40 + Math.random() * 10;
+
+          currentAircraft.updateState(statusInfo.value.status);
+        }
+      }
+    }, 100);
+  }
+  function stopCruise() {}
+  function land() {}
+  function cannelCruise() {}
 </script>
 
 <style scoped lang="scss">
-  .aircraft-bottom-panel {
+  .info-window {
+    flex: 1;
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
   }
-  .controller {
-    height: 100%;
-    aspect-ratio: 1/1;
+  .aircraft-title {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
   }
-  .controller-container {
-    width: 80%;
-    height: 80%;
+  .power-bar {
+    width: 50%;
+    display: flex;
+    align-items: center;
+  }
+  .power-title {
+    margin-right: 8px;
+    width: 2rem;
+  }
+  .info-window-content {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+  }
+  .cruise-select {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .divider {
+    width: 100%;
+    opacity: 1;
+  }
+  .aircraft-info {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+  }
+  .aircraft-nest {
+    //宽和高一样
+    height: 100%;
+    aspect-ratio: 1;
+
+    background-color: rgb(10, 51, 51);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .text-info {
+    display: flex;
+    height: 100%;
+    width: 10%;
+    flex-direction: column;
+  }
+  .status-info {
+    width: 10%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    //放在网格正中间
+    place-items: center;
+  }
+  .btn-group {
+    height: 100%;
+    width: 50%;
+    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    //放在网格正中间
+    place-items: center;
+  }
+  .height-indicate {
+    height: 100%;
+    width: 150px;
+    display: flex;
+  }
+  .height-indicate-text {
+    width: 50px;
+    display: flex;
     position: relative;
   }
-  .controller-out {
+  .indicator {
     position: absolute;
-    background-image: url('@/assets/aircraft-circle.png');
-    background-size: 100% 100%;
-    height: 70%;
-    aspect-ratio: 1 / 1; /* 宽高比1:1 */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) rotate(45deg);
-    filter: drop-shadow(0 0 10px #001477) drop-shadow(0 0 20px rgb(0, 0, 0))
-      drop-shadow(0 0 30px rgba(85, 255, 255, 0.605));
-    z-index: 999;
+    display: flex;
+    align-items: center;
   }
-  .controller-in {
-    position: absolute;
-    background-image: url('@/assets/circle_in.png');
-    background-size: 100% 100%;
+  .v-text {
+    //垂直排版文本
+    writing-mode: vertical-rl; /* 垂直方向，从右到左 */
+  }
+  .time-info {
+    width: 10%;
     height: 100%;
-    aspect-ratio: 1 / 1; /* 宽高比1:1 */
-    z-index: 1000;
-    pointer-events: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    place-items: center;
+    //放在网格正中间
   }
-  .left {
-    animation: rotate-in 30s linear infinite;
+  .time-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
-  .right {
-    animation: rotate-in 30s linear infinite reverse;
+  .rotate-fan {
+    animation: rotate 1s infinite linear;
   }
-  @keyframes rotate-in {
+  @keyframes rotate {
     0% {
       transform: rotate(0deg);
-    }
-    50% {
-      transform: rotate(180deg);
     }
     100% {
       transform: rotate(360deg);
     }
   }
-  .controller-btn {
-    position: absolute;
-    background-image: url('@/assets/btn.png');
-    background-size: 100% 100%;
-    height: 80px;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    aspect-ratio: 1 / 1; /* 宽高比1:1 */
-    z-index: 1000;
-    transition: all 0.1s ease-in-out;
+  .info-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-  .controller-btn:active {
-    // filter: drop-shadow(0 0 10px #001477) drop-shadow(0 0 20px rgb(0, 0, 0))
-    //   drop-shadow(0 0 30px rgba(85, 255, 255, 0.605));
-    transform: translate(-50%, -50%) scale(0.9);
-    cursor: pointer;
-  }
-  .mask-forward {
-    position: absolute;
-    width: 50%;
-    height: 50%;
-    // background-color: rgba(0, 1, 74, 0.459);
-    border-radius: 100% 0 0 0;
-    z-index: 1;
-    background: linear-gradient(
-      to left top,
-      transparent,
-      rgba(0, 0, 1, 0.459) 50%
-    );
-  }
-  .mask-back {
-    position: absolute;
-    width: 50%;
-    height: 50%;
-    right: 0%;
-    bottom: 0%;
-    // background-color: rgba(0, 1, 74, 0.459);
-    border-radius: 0 0 100% 0;
-    z-index: 1;
-    background: linear-gradient(
-      to right bottom,
-      transparent,
-      rgba(0, 0, 1, 0.459) 50%
-    );
-  }
-  .mask-left {
-    position: absolute;
-    width: 50%;
-    height: 50%;
-    // background-color: rgba(0, 1, 74, 0.459);
-    border-radius: 0 0 0 100%;
-    bottom: 0%;
-    z-index: 1;
-    background: linear-gradient(
-      to left bottom,
-      transparent,
-      rgba(0, 0, 1, 0.459) 50%
-    );
-  }
-  .mask-right {
-    position: absolute;
-    width: 50%;
-    height: 50%;
-    right: 0%;
-    // background-color: rgba(0, 1, 74, 0.459);
-    border-radius: 0 100% 0 0;
-    z-index: 1;
-    background: linear-gradient(
-      to right top,
-      transparent,
-      rgba(0, 0, 1, 0.459) 50%
-    );
+  :deep(.v-field__input) {
+    padding-inline: var(--v-field-padding-start) var(--v-field-padding-end);
+    padding-top: var(--v-field-input-padding-top);
+    padding-bottom: var(--v-field-input-padding-bottom);
   }
 </style>

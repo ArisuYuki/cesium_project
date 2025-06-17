@@ -13,6 +13,10 @@ interface AircraftStatus {
   shutdown: boolean;
   //飞机的飞行速度
   speed: number;
+  //已经飞行的时间
+  timeUsed: number;
+  //剩余的可用时间
+  timeLeft: number;
 }
 /**
  * @description 无人机初始化状态接口

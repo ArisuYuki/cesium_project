@@ -10,7 +10,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     AircraftCard: typeof import('./src/components/leftPanel/aircraftInfo/AircraftCard.vue')['default']
     AircraftInfo: typeof import('./src/components/leftPanel/aircraftInfo/AircraftInfo.vue')['default']
-    AircraftList: typeof import('./src/components/leftPanel/aircraftList/AircraftList.vue')['default']
     AircraftPanel: typeof import('./src/components/AircraftPanel/AircraftPanel.vue')['default']
     AirlineDesign: typeof import('./src/components/leftPanel/airlineDesign/AirlineDesign.vue')['default']
     CameraController: typeof import('./src/components/rightPanel/cameraController/CameraController.vue')['default']

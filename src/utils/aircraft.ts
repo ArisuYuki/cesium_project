@@ -56,6 +56,10 @@ import {
   HorizontalOrigin,
   Cartesian2,
   HeadingPitchRoll,
+  Transforms,
+  Matrix4,
+  Matrix3,
+  Ellipsoid,
   // IonResource,
 } from 'cesium';
 import { useCesiumStore } from '@/store/cesiumStore';
@@ -89,17 +93,19 @@ class Aircraft extends EventTarget {
     this.socket = new WebSocket('/aircraft/info?id=' + this.statusInfo.id);
     this.aircraftEntity = undefined;
     this.airLine = undefined;
-    this.currentOrientation = Quaternion.fromHeadingPitchRoll(
+
+    this.currentLocation = Cartesian3.fromDegrees(
+      this.statusInfo.status.location[0],
+      this.statusInfo.status.location[1],
+      this.statusInfo.status.location[2]
+    );
+    this.currentOrientation = Transforms.headingPitchRollQuaternion(
+      this.currentLocation,
       new HeadingPitchRoll(
         this.statusInfo.status.orientation[0],
         this.statusInfo.status.orientation[1],
         this.statusInfo.status.orientation[2]
       )
-    );
-    this.currentLocation = Cartesian3.fromDegrees(
-      this.statusInfo.status.location[0],
-      this.statusInfo.status.location[1],
-      this.statusInfo.status.location[2]
     );
     this.init();
   }
@@ -114,13 +120,13 @@ class Aircraft extends EventTarget {
     this.airLine = new CallbackPositionProperty(
       (_time?: JulianDate, result?: Cartesian3) => {
         //更新可视锥
-        this.addFrustum(
-          this.currentLocation,
-          this.currentOrientation,
-          40,
-          1,
-          this.statusInfo.status.location[2]
-        );
+        // this.addFrustum(
+        //   this.currentLocation,
+        //   this.currentOrientation,
+        //   40,
+        //   1,
+        //   this.statusInfo.status.location[2]
+        // );
         return this.currentLocation;
       },
       false // 不缓存，每次都重新计算
@@ -134,8 +140,8 @@ class Aircraft extends EventTarget {
         // uri: resource,
         scale: 1,
       },
-      orientation: new VelocityOrientationProperty(this.airLine), // 自动计算朝向
-      // orientation: this.orientation,
+      // orientation: new VelocityOrientationProperty(this.airLine), // 自动计算朝向
+      orientation: this.currentOrientation,
       path: { width: 3 }, // 显示飞行路径
       viewFrom: new Cartesian3(-100, 0, 10),
       description: JSON.stringify({
@@ -177,7 +183,8 @@ class Aircraft extends EventTarget {
       newState.location[1],
       newState.location[2]
     );
-    this.currentOrientation = Quaternion.fromHeadingPitchRoll(
+    // @ts-expect-error: 缺少属性
+    this.aircraftEntity!.orientation = Quaternion.fromHeadingPitchRoll(
       new HeadingPitchRoll(
         newState.orientation[0],
         newState.orientation[1],
@@ -186,13 +193,69 @@ class Aircraft extends EventTarget {
     );
   }
   /**
-   * @description: 仅在测试阶段使用
-   * @param {AircraftInfo} newState
-   * @return {*}
+   * 计算朝向四元数
+   * X轴正向指向运动方向；Y轴在水平面内垂直于X轴，正向指向右侧；Z轴通过右手法则确定
+   * @param {Cartesian3} position 位置
+   * @param {Cartesian3} velocity 速度向量
+   * @param {*} rotateX 绕X轴旋转的角度（roll）
+   * @param {*} rotateY 绕Y轴旋转的角度（pitch）
+   * @param {*} rotateZ 绕Z轴旋转的角度（heading）
+   * @returns
    */
-  updata(newState: AircraftStatus) {
-    this.dispatchEvent(new CustomEvent('update', { detail: newState }));
+  getQuaternion(
+    position: Cartesian3,
+    velocity: Cartesian3,
+    rotateX: number,
+    rotateY: number,
+    rotateZ: number
+  ) {
+    // 1、计算站心到模型坐标系的旋转平移矩阵
+    // 速度归一化
+    const normal = Cartesian3.normalize(velocity, new Cartesian3());
+    // 计算模型坐标系的旋转矩阵
+    const satRotationMatrix = Transforms.rotationMatrixFromPositionVelocity(
+      position,
+      normal,
+      Ellipsoid.WGS84
+    );
+    // 模型坐标系到地固坐标系旋转平移矩阵
+    const m = Matrix4.fromRotationTranslation(satRotationMatrix, position);
+    // 站心坐标系（东北天坐标系）到地固坐标系旋转平移矩阵
+    const m1 = Transforms.eastNorthUpToFixedFrame(
+      position,
+      Ellipsoid.WGS84,
+      new Matrix4()
+    );
+    // 站心到模型坐标系的旋转平移矩阵
+    const m3 = Matrix4.multiply(
+      Matrix4.inverse(m1, new Matrix4()),
+      m,
+      new Matrix4()
+    );
+
+    // 2、模型姿态旋转矩阵
+    rotateX = rotateX || 0;
+    rotateY = rotateY || 0;
+    rotateZ = rotateZ || 0;
+    const heading = rotateZ,
+      pitch = rotateY,
+      roll = rotateX;
+    const postureHpr = new HeadingPitchRoll(
+      Math.toRadians(heading),
+      Math.toRadians(pitch),
+      Math.toRadians(roll)
+    );
+    const postureMatrix = Matrix3.fromHeadingPitchRoll(postureHpr);
+
+    // 3、最终的旋转矩阵
+    const mat3 = Matrix4.getMatrix3(m3, new Matrix3());
+    const finalMatrix = Matrix3.multiply(mat3, postureMatrix, new Matrix3());
+    const quaternion1 = Quaternion.fromRotationMatrix(finalMatrix);
+    const hpr = HeadingPitchRoll.fromQuaternion(quaternion1);
+    const q2 = Transforms.headingPitchRollQuaternion(position, hpr);
+    return q2;
   }
+
   /**
    * @description: 为无人机指定航线
    * @return {*}

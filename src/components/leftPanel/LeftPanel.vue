@@ -63,9 +63,15 @@
           <v-tabs-window-item value="airline-design">
             <AirlineDesign></AirlineDesign>
           </v-tabs-window-item>
-          <v-tabs-window-item value="airline-cruise"> </v-tabs-window-item>
-          <v-tabs-window-item value="asset-manage"> </v-tabs-window-item>
-          <v-tabs-window-item value="info-export"> </v-tabs-window-item>
+          <v-tabs-window-item value="airline-cruise">
+            <div class="placeholder">施工中....</div>
+          </v-tabs-window-item>
+          <v-tabs-window-item value="asset-manage">
+            <div class="placeholder">施工中....</div>
+          </v-tabs-window-item>
+          <v-tabs-window-item value="info-export">
+            <div class="placeholder">施工中....</div>
+          </v-tabs-window-item>
         </v-tabs-window>
       </div>
     </div>
